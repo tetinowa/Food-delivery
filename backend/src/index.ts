@@ -7,7 +7,7 @@ app.use(express.json());
 const arr: string[] = [];
 
 app.get("/", (req, res) => {
-  res.json(arr);
+  res.json("aa");
 });
 
 app.post("/", (req, res) => {});
