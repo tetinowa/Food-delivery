@@ -1,28 +1,26 @@
 import { Header } from "./_components/header";
+import { HeroBanner } from "./_components/hero-banner";
+import { CategorySection } from "./_components/category-section";
+import { Footer } from "./_components/footer";
+import {
+  appetizers,
+  salads,
+  lunchFavorites,
+  moreSalads,
+} from "./_components/data";
 
 export default function Home() {
   return (
-    <div>
+    <div className="min-h-screen flex flex-col">
       <Header />
-      <div className="bg-[#404040] w-full h-1000 flex flex-col gap-[88px] items-center">
-        <img src="/misc/Container.png"></img>
-        <div className="w-[1264px] flex flex-col  gap-[54px]">
-          <div>
-            <h1 className="font-semibold text-[30px] leading-[36px] text-white">
-              Appetisers
-            </h1>
-          </div>
-          <div className="grid grid-cols-3">
-            <div className="rounded-[20px] p-4 gap-5 bg-white flex flex-col">
-              <div className=""></div>
-              <img
-                src="placeholderfood.png"
-                className="w-[365.3px] h-[210px]"
-              ></img>
-            </div>
-          </div>
-        </div>
+      <HeroBanner imageSrc="/misc/Container.png" alt="Today's Offer" />
+      <div className="bg-[#404040] w-full flex flex-col gap-[88px] items-center py-[88px]">
+        <CategorySection title="Appetizers" items={appetizers} />
+        <CategorySection title="Salads" items={salads} />
+        <CategorySection title="Lunch favorites" items={lunchFavorites} />
+        <CategorySection title="Salads" items={moreSalads} />
       </div>
+      <Footer />
     </div>
   );
 }
