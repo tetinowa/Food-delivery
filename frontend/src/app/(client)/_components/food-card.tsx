@@ -1,17 +1,38 @@
+"use client";
+
 import { Card, CardContent } from "@/components/ui/card";
-import { Heart } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { FoodCardProps } from "./types";
+import { useCart } from "@/contexts/cart-context";
+import { sonner, Toaster } from "@/components/ui/sonner";
 
 export function FoodCard({
+  id,
   name,
   price,
   description,
   imageSrc,
   imageAlt = name,
 }: FoodCardProps) {
+  const { addItem } = useCart();
+
+  const handleAddToCart = () => {
+    addItem({
+      id,
+      name,
+      price,
+      description,
+      imageSrc,
+    });
+    <Toaster />;
+    sonner.success(`${name} added to cart!`, {
+      duration: 2000,
+    });
+  };
+
   return (
-    <Card className="rounded-[20px] overflow-hidden border-0 shadow-lg hover:shadow-xl transition-shadow">
+    <Card className="rounded-4xl overflow-hidden border-0 shadow-lg hover:shadow-xl transition-shadow">
       <CardContent className="p-4 flex flex-col gap-5">
         <div className="relative w-full aspect-[365/210] overflow-hidden rounded-lg">
           <img
@@ -22,9 +43,10 @@ export function FoodCard({
           <Button
             variant="ghost"
             size="icon"
-            className="absolute top-2 right-2 bg-white/90 hover:bg-white rounded-full w-10 h-10"
+            className="absolute bottom-3 right-3 bg-white/90 hover:bg-white rounded-full w-10 h-10"
+            onClick={handleAddToCart}
           >
-            <Heart className="w-5 h-5 text-gray-700" />
+            <Plus className="w-5 h-5 text-red" />
           </Button>
         </div>
         <div className="flex flex-col gap-2">

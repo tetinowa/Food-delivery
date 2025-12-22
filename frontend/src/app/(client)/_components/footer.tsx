@@ -4,7 +4,6 @@ import Link from "next/link";
 export function Footer() {
   return (
     <footer className="w-full bg-[#18181B] mt-auto">
-      {/* Delivery Banner */}
       <div className="w-full bg-[#EF4444] py-4 overflow-hidden">
         <div className="flex animate-scroll whitespace-nowrap">
           {[...Array(10)].map((_, i) => (
@@ -18,10 +17,8 @@ export function Footer() {
         </div>
       </div>
 
-      {/* Footer Content */}
       <div className="w-full max-w-[1264px] mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {/* Brand Section */}
           <div className="flex flex-col gap-3">
             <div className="flex gap-3 items-center">
               <img
@@ -45,7 +42,6 @@ export function Footer() {
             </div>
           </div>
 
-          {/* BUSINESS Section */}
           <div className="flex flex-col gap-4">
             <h3 className="text-white font-semibold text-sm uppercase">
               BUSINESS
@@ -69,12 +65,14 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* MENU Section */}
           <div className="flex flex-col gap-4">
             <h3 className="text-white font-semibold text-sm uppercase">MENU</h3>
             <ul className="flex flex-col gap-3 text-[#A1A1AA] text-sm">
               <li>
-                <Link href="/appetizers" className="hover:text-white transition">
+                <Link
+                  href="/appetizers"
+                  className="hover:text-white transition"
+                >
                   Appetizers
                 </Link>
               </li>
@@ -89,7 +87,10 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/main-dishes" className="hover:text-white transition">
+                <Link
+                  href="/main-dishes"
+                  className="hover:text-white transition"
+                >
                   Main dishes
                 </Link>
               </li>
@@ -101,7 +102,6 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* FOLLOW US Section */}
           <div className="flex flex-col gap-4">
             <h3 className="text-white font-semibold text-sm uppercase">
               FOLLOW US
@@ -118,10 +118,7 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link
-                  href="/beverages"
-                  className="hover:text-white transition"
-                >
+                <Link href="/beverages" className="hover:text-white transition">
                   Beverages
                 </Link>
               </li>
@@ -151,8 +148,6 @@ export function Footer() {
             </div>
           </div>
         </div>
-
-        {/* Bottom Links */}
         <div className="mt-12 pt-8 border-t border-[#27272A]">
           <div className="flex flex-wrap gap-6 text-[#71717A] text-xs">
             <Link href="/terms" className="hover:text-white transition">
@@ -161,10 +156,16 @@ export function Footer() {
             <Link href="/privacy" className="hover:text-white transition">
               Privacy policy
             </Link>
-            <Link href="/terms-of-service" className="hover:text-white transition">
+            <Link
+              href="/terms-of-service"
+              className="hover:text-white transition"
+            >
               Terms of services
             </Link>
-            <Link href="/cookie-settings" className="hover:text-white transition">
+            <Link
+              href="/cookie-settings"
+              className="hover:text-white transition"
+            >
               Cookie Settings
             </Link>
           </div>

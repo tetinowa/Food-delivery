@@ -11,8 +11,11 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { useCart } from "@/contexts/cart-context";
 
 export function Header() {
+  const { totalItems } = useCart();
+
   return (
     <header className="w-full h-16 bg-[#18181B] flex items-center justify-between pl-22 pr-22 pt-3 pb-3">
       <div className="flex gap-3 justify-center items-center">
@@ -70,8 +73,13 @@ export function Header() {
           </form>
         </Dialog>
 
-        <Button variant="outline" className="w-9 h-9 rounded-full">
+        <Button variant="outline" className="w-9 h-9 rounded-full relative">
           <ShoppingCart />
+          {totalItems > 0 && (
+            <span className="absolute -top-1 -right-1 bg-[#EF4444] text-white text-xs font-semibold rounded-full w-5 h-5 flex items-center justify-center">
+              {totalItems}
+            </span>
+          )}
         </Button>
         <Button
           variant="default"
