@@ -15,7 +15,7 @@ export default function Home() {
     <div className="min-h-screen flex flex-col">
       <Header />
       <img src="/misc/Container.png" />
-      <div className="bg-[#404040] w-full flex flex-col gap-[88px] items-center py-[88px]">
+      <div className="bg-[#404040] w-full flex flex-col gap-22 items-center py-22">
         <CategorySection title="Appetizers" items={appetizers} />
         <CategorySection title="Salads" items={salads} />
         <CategorySection title="Lunch favorites" items={lunchFavorites} />

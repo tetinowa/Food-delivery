@@ -5,7 +5,7 @@ import { Plus } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { FoodCardProps } from "./types";
 import { useCart } from "@/contexts/cart-context";
-import { sonner, Toaster } from "@/components/ui/sonner";
+import { toast } from "sonner";
 
 export function FoodCard({
   id,
@@ -25,8 +25,7 @@ export function FoodCard({
       description,
       imageSrc,
     });
-    <Toaster />;
-    sonner.success(`${name} added to cart!`, {
+    toast.success(`${name} added to cart!`, {
       duration: 2000,
     });
   };
@@ -34,7 +33,7 @@ export function FoodCard({
   return (
     <Card className="rounded-4xl overflow-hidden border-0 shadow-lg hover:shadow-xl transition-shadow">
       <CardContent className="p-4 flex flex-col gap-5">
-        <div className="relative w-full aspect-[365/210] overflow-hidden rounded-lg">
+        <div className="relative w-full aspect-365/210 overflow-hidden rounded-lg">
           <img
             src={imageSrc}
             alt={imageAlt}
