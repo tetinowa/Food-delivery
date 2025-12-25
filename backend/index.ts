@@ -1,6 +1,6 @@
 import express from "express";
-import { connectToDatabase } from "./src/database/index.ts";
-import { foodRouter } from "./src/routes/index.ts";
+import { connectToDatabase } from "./database/index.ts";
+import { foodRouter } from "./routes/index.ts";
 
 await connectToDatabase();
 
