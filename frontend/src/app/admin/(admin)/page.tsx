@@ -4,9 +4,9 @@ import { OrderTable } from "@/app/(client)/_components/ordertable";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <div>
+    <div className="w-screen h-screen flex justify-start  ">
       <AppSidebar />
-      <div className="w-vw h-vh flex flex-col justify-center pt-10">
+      <div className="flex flex-col justify-center items-center pt-10">
         <div className="w-[1171px] flex flex-col gap-6">
           <div className="w-[1171px] flex justify-end">
             <img
