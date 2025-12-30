@@ -15,7 +15,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               className="w-9 h-9 rounded-full"
             />
           </div>
-
           <OrderTable />
         </div>
       </div>

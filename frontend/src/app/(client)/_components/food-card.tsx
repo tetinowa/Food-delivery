@@ -7,6 +7,10 @@ import { FoodCardProps } from "./types";
 import { useCart } from "@/contexts/cart-context";
 import { toast } from "sonner";
 
+interface FoodCardComponentProps extends FoodCardProps {
+  onClick?: () => void;
+}
+
 export function FoodCard({
   id,
   name,
@@ -14,10 +18,12 @@ export function FoodCard({
   description,
   imageSrc,
   imageAlt = name,
-}: FoodCardProps) {
+  onClick,
+}: FoodCardComponentProps) {
   const { addItem } = useCart();
 
-  const handleAddToCart = () => {
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.stopPropagation();
     addItem({
       id,
       name,
@@ -31,7 +37,10 @@ export function FoodCard({
   };
 
   return (
-    <Card className="rounded-4xl overflow-hidden border-0 shadow-lg hover:shadow-xl transition-shadow">
+    <Card
+      className="rounded-4xl overflow-hidden border-0 shadow-lg hover:shadow-xl transition-shadow cursor-pointer"
+      onClick={onClick}
+    >
       <CardContent className="p-4 flex flex-col gap-5">
         <div className="relative w-full aspect-365/210 overflow-hidden rounded-lg">
           <img
