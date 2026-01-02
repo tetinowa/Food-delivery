@@ -9,12 +9,21 @@ import {
 import { Button } from "@/components/ui/button";
 import { Plus, Minus } from "lucide-react";
 
-export function CartDialog() {
+interface CartDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export function CartDialog({ open, onOpenChange }: CartDialogProps) {
   return (
-    <Dialog>
-      <DialogContent className="sm:max-w-[826px] sm:max-h-[412px] flex p-6 gap-6 items-center justify-center">
-        <div>Cart Dialog Content</div>
-      </DialogContent>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <div className="flex justify-end">
+        <DialogContent className="sm:max-w-[826px] sm:max-h-[412px] bg-[#404040] flex p-8 gap-6 items-center justify-center">
+          <DialogHeader>
+            <DialogTitle>Cart</DialogTitle>
+          </DialogHeader>
+        </DialogContent>
+      </div>
     </Dialog>
   );
 }
