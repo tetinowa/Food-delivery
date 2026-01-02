@@ -33,12 +33,10 @@ export function Header() {
             </span>
           )}
         </Button>
-        <div className="">
-          <CartDialog
-            open={isCartDialogOpen}
-            onOpenChange={setIsCartDialogOpen}
-          />
-        </div>
+        <CartDialog
+          open={isCartDialogOpen}
+          onOpenChange={setIsCartDialogOpen}
+        />
         <Button
           variant="default"
           className="outline-0 w-9 h-9 bg-[#EF4444] rounded-full"
