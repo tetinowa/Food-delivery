@@ -1,15 +1,16 @@
 "use client";
 
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+import { useState } from "react";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { ShoppingCartIcon, Trash2, Plus, Minus } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { ShoppingCartIcon, X } from "lucide-react";
 import { useCart } from "@/contexts/cart-context";
-import Image from "next/image";
+import { CartEmptyState } from "./cart/CartEmptyState";
+import { CartSuccessState } from "./cart/CartSuccessState";
+import { CartAddressForm } from "./cart/CartAddressForm";
+import { CartItem } from "./cart/CartItem";
+import { RemoveItemDialog } from "./cart/RemoveItemDialog";
 
 interface CartDialogProps {
   open: boolean;
@@ -19,158 +20,163 @@ interface CartDialogProps {
 export function CartDialog({ open, onOpenChange }: CartDialogProps) {
   const { items, removeItem, updateQuantity, totalPrice, clearCart } =
     useCart();
+  const [step, setStep] = useState<"cart" | "address" | "success">("cart");
+  const [showRemoveDialog, setShowRemoveDialog] = useState(false);
+  const [itemToRemove, setItemToRemove] = useState<string | null>(null);
+
+  const deliveryFee = 0.99;
+  const total = totalPrice + deliveryFee;
+
+  const handleClose = () => {
+    setStep("cart");
+    onOpenChange(false);
+  };
+
+  const confirmRemoveItem = (id: string) => {
+    setItemToRemove(id);
+    setShowRemoveDialog(true);
+  };
+
+  const handleRemoveItem = () => {
+    if (itemToRemove) {
+      removeItem(itemToRemove);
+      setShowRemoveDialog(false);
+      setItemToRemove(null);
+    }
+  };
+
+  const renderContent = () => {
+    if (items.length === 0 && step === "cart") {
+      return <CartEmptyState onClose={handleClose} />;
+    }
+
+    if (step === "success") {
+      return <CartSuccessState onClose={handleClose} onClearCart={clearCart} />;
+    }
+
+    if (step === "address") {
+      return (
+        <CartAddressForm
+          onBack={() => setStep("cart")}
+          onSubmit={() => setStep("success")}
+        />
+      );
+    }
+
+    return (
+      <>
+        <RemoveItemDialog
+          open={showRemoveDialog}
+          onCancel={() => setShowRemoveDialog(false)}
+          onConfirm={handleRemoveItem}
+        />
+        <div className="">
+          <div className="h-full flex flex-col">
+            <div className="flex items-center justify-between p-6 border-b border-gray-600">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-red-500 rounded flex items-center justify-center">
+                  <ShoppingCartIcon className="text-white text-sm" />
+                </div>
+                <h1 className="text-xl font-semibold text-white">
+                  Order detail
+                </h1>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleClose}
+                className="text-white hover:bg-white/10"
+              >
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+            <div className="flex">
+              <div className="flex gap-2 p-4 border-b border-gray-600">
+                <Button className="flex-1 h-10 bg-red-500 hover:bg-red-600 text-white rounded-full">
+                  Cart
+                </Button>
+                <Button
+                  variant="outline"
+                  className="flex-1 h-10 rounded-full border-gray-600 text-white hover:bg-white/10"
+                >
+                  Order
+                </Button>
+              </div>
+            </div>
+            <div className="">
+              <div className="flex-1 overflow-y-auto bg-white rounded-tl-3xl">
+                <div className="p-6">
+                  <h2 className="text-lg font-semibold mb-4 text-black">
+                    My cart
+                  </h2>
+                  <div className="space-y-4 mb-6">
+                    {items.map((item) => (
+                      <CartItem
+                        key={item.id}
+                        {...item}
+                        onRemove={confirmRemoveItem}
+                        onUpdateQuantity={updateQuantity}
+                      />
+                    ))}
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="font-semibold mb-2 text-black">
+                        Delivery location
+                      </h3>
+                      <Input
+                        placeholder="Please share your complete address"
+                        className="h-12 bg-gray-100 border-gray-200"
+                      />
+                    </div>
+
+                    <div>
+                      <h3 className="font-semibold mb-3 text-black">
+                        Payment info
+                      </h3>
+                      <div className="space-y-2 mb-4">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Items</span>
+                          <span className="font-semibold text-black">
+                            ${totalPrice.toFixed(2)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Shipping</span>
+                          <span className="font-semibold text-black">
+                            ${deliveryFee.toFixed(2)}
+                          </span>
+                        </div>
+                        <div className="border-t border-gray-200 pt-2 flex justify-between font-bold text-black">
+                          <span>Total</span>
+                          <span>${total.toFixed(2)}</span>
+                        </div>
+                      </div>
+                      <Button
+                        className="w-full h-12 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-full"
+                        onClick={() => setStep("address")}
+                      >
+                        Checkout
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  };
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
-        className="sm:max-w-[535px] bg-[#404040] p-8 gap-6 rounded-l-[20px] border-0"
+        className="sm:max-w-[535px] w-full bg-[#404040] p-0 border-0"
       >
-        <SheetHeader className="p-0 flex ">
-          <SheetTitle>
-            <div className="flex text-white gap-3 items-center flex-col items-start">
-              <div className="flex gap-3 items-center">
-                <ShoppingCartIcon />
-                <h1>Order detail</h1>
-              </div>
-              <div className="w-[500px] flex items-center rounded-full p-1 gap-1 bg-white">
-                <Button
-                  variant={"ghost"}
-                  className="w-1/2 bg-[#18181B] text-white rounded-full bg-[#EF4444]"
-                >
-                  Cart
-                </Button>
-                <Button variant={"secondary"} className="w-1/2 rounded-full">
-                  Cart
-                </Button>
-              </div>
-            </div>
-          </SheetTitle>
-        </SheetHeader>
-
-        <div className="mt-8 flex flex-col h-full">
-          {items.length === 0 ? (
-            <div className="w-full bg-white flex flex-col rounded-[20px] gap-4">
-              <div className="flex-1 flex flex-col items-center justify-center text-gray-400">
-                <p className="text-lg mb-4">Your cart is empty</p>
-                <ShoppingCartIcon className="w-12 h-12" />
-              </div>
-
-              <div className="mt-6 pt-6 border-t border-gray-600 space-y-4">
-                <div className="flex justify-between text-white text-xl font-bold">
-                  <span>Total:</span>
-                  <span>${totalPrice.toFixed(2)}</span>
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    className="flex-1 bg-transparent text-white border-white hover:bg-white/10"
-                    onClick={clearCart}
-                  >
-                    Clear Cart
-                  </Button>
-                  <Button
-                    className="flex-1"
-                    onClick={() => onOpenChange(false)}
-                  >
-                    Checkout
-                  </Button>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <>
-              <div className="flex-1 overflow-y-auto space-y-4">
-                {items.map((item) => (
-                  <div
-                    key={item.id}
-                    className="bg-[#18181B] rounded-lg p-4 flex gap-4"
-                  >
-                    <Image
-                      src={item.imageSrc}
-                      alt={item.name}
-                      width={80}
-                      height={80}
-                      className="rounded-md object-cover"
-                    />
-                    <div className="flex-1 flex flex-col justify-between">
-                      <div>
-                        <h3 className="text-white font-semibold">
-                          {item.name}
-                        </h3>
-                        <p className="text-gray-400 text-sm">
-                          {item.description}
-                        </p>
-                      </div>
-                      <div className="flex items-center justify-between mt-2">
-                        <div className="flex items-center gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="h-8 w-8 p-0"
-                            onClick={() =>
-                              updateQuantity(item.id, item.quantity - 1)
-                            }
-                          >
-                            <Minus className="h-4 w-4" />
-                          </Button>
-                          <span className="text-white w-8 text-center">
-                            {item.quantity}
-                          </span>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="h-8 w-8 p-0"
-                            onClick={() =>
-                              updateQuantity(item.id, item.quantity + 1)
-                            }
-                          >
-                            <Plus className="h-4 w-4" />
-                          </Button>
-                        </div>
-                        <div className="flex items-center gap-4">
-                          <span className="text-white font-semibold">
-                            ${(item.price * item.quantity).toFixed(2)}
-                          </span>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="h-8 w-8 p-0 text-red-500 hover:text-red-600"
-                            onClick={() => removeItem(item.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-6 pt-6 border-t border-gray-600 space-y-4">
-                <div className="flex justify-between text-white text-xl font-bold">
-                  <span>Total:</span>
-                  <span>${totalPrice.toFixed(2)}</span>
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    className="flex-1 bg-transparent text-white border-white hover:bg-white/10"
-                    onClick={clearCart}
-                  >
-                    Clear Cart
-                  </Button>
-                  <Button
-                    className="flex-1"
-                    onClick={() => onOpenChange(false)}
-                  >
-                    Checkout
-                  </Button>
-                </div>
-              </div>
-            </>
-          )}
-        </div>
+        {renderContent()}
       </SheetContent>
     </Sheet>
   );

@@ -7,110 +7,131 @@ import { useForm } from "react-hook-form";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import { useState } from "react";
+import {
+  AuthPageLayout,
+  AuthFormHeader,
+  PasswordInputField,
+  AuthFormActions,
+} from "@/app/(client)/_components/auth";
 
-const formSchema = z.object({
+const emailSchema = z.object({
   email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
-type FormSchemaType = z.infer<typeof formSchema>;
+const passwordSchema = z
+  .object({
+    password: z.string().min(6, "Password must be at least 6 characters"),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+  });
 
-export type LoginProps = {
-  onNext?: () => void;
-};
+type EmailFormType = z.infer<typeof emailSchema>;
+type PasswordFormType = z.infer<typeof passwordSchema>;
 
-export default function Login() {
-  const form = useForm<FormSchemaType>({
-    resolver: zodResolver(formSchema),
+export default function SignUp() {
+  const [step, setStep] = useState(1);
+  const [emailData, setEmailData] = useState("");
+
+  const emailForm = useForm<EmailFormType>({
+    resolver: zodResolver(emailSchema),
     defaultValues: {
       email: "",
-      password: "",
     },
   });
 
-  const onSubmit = (values: FormSchemaType) => {
-    console.log(values);
-    // TODO: Implement login logic
+  const passwordForm = useForm<PasswordFormType>({
+    resolver: zodResolver(passwordSchema),
+    defaultValues: {
+      password: "",
+      confirmPassword: "",
+    },
+  });
+
+  const onEmailSubmit = (values: EmailFormType) => {
+    console.log("Email:", values);
+    setEmailData(values.email);
+    setStep(2);
+  };
+
+  const onPasswordSubmit = (values: PasswordFormType) => {
+    console.log("Complete signup:", { email: emailData, ...values });
   };
 
   return (
-    <div className="w-screen h-screen flex items-center justify-center">
-      <div className="flex h-fit w-fit items-center justify-center gap-10">
-        <div className="flex flex-col w-104 gap-6">
-          <Form {...form}>
-            <form className="space-y-5" onSubmit={form.handleSubmit(onSubmit)}>
-              <div className="flex flex-col gap">
-                <FormLabel className="text-black font-semibold text-[24px] leading-8">
-                  Login
-                </FormLabel>
-                <FormDescription className="text-muted-foreground text-[16px] font-normal leading-6 ">
-                  Log in to enjoy your favorite dishes.
-                </FormDescription>
-              </div>
-              <div className="flex flex-col gap-4">
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <div>
-                      <FormItem>
-                        <FormControl>
-                          <Input
-                            type="text"
-                            placeholder="Enter your email address"
-                            className="h-12"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormDescription />
-                        <FormMessage />
-                      </FormItem>
-                    </div>
-                  )}
-                />
+    <AuthPageLayout>
+      {step === 1 && (
+        <Form {...emailForm}>
+          <form className="space-y-5" onSubmit={emailForm.handleSubmit(onEmailSubmit)}>
+            <AuthFormHeader
+              title="Create your account"
+              description="Sign up to explore your favorite dishes."
+            />
 
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <Input
-                          type="password"
-                          placeholder="Password"
-                          className="h-12"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormDescription />
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormDescription className="text-sm text-secondary-foreground underline">
-                  Forgot password?
-                </FormDescription>
-              </div>
-              <Button
-                type="submit"
-                className="bg-black text-white w-full h-12 px-6"
-              >
-                Let's go
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </form>
-          </Form>
-        </div>
-        <img src="/misc/login.jpg" className="w-214 h-226 rounded-3xl" />
-      </div>
-    </div>
+            <FormField
+              control={emailForm.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Input
+                      type="email"
+                      placeholder="Enter your email address"
+                      className="h-12"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <AuthFormActions
+              buttonText="Continue"
+              footerText="Already have an account?"
+              footerLinkText="Log in"
+              footerLinkHref="/login"
+            />
+          </form>
+        </Form>
+      )}
+
+      {step === 2 && (
+        <Form {...passwordForm}>
+          <form
+            className="space-y-5"
+            onSubmit={passwordForm.handleSubmit(onPasswordSubmit)}
+          >
+            <AuthFormHeader
+              title="Create a strong password"
+              description="Your password must be at least 6 characters."
+            />
+
+            <div className="flex flex-col gap-4">
+              <PasswordInputField control={passwordForm.control} name="password" />
+              <PasswordInputField
+                control={passwordForm.control}
+                name="confirmPassword"
+                placeholder="Confirm password"
+              />
+            </div>
+
+            <AuthFormActions
+              buttonText="Continue"
+              footerText="Already have an account?"
+              footerLinkText="Log in"
+              footerLinkHref="/login"
+            />
+          </form>
+        </Form>
+      )}
+    </AuthPageLayout>
   );
 }
