@@ -1,23 +1,51 @@
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/app-sidebar";
-import { OrderTable } from "@/app/(client)/_components/ordertable";
+"use client";
 
-export default function Layout({ children }: { children: React.ReactNode }) {
+import { Card } from "@/components/ui/card";
+import { CreateFoodDialog } from "@/app/admin/_components/CreateFoodDialog";
+import { useEffect, useState } from "react";
+import { FoodCard } from "@/app/admin/_components/FoodCard";
+import { api } from "@/lib/axios";
+
+type Food = {
+  _id: string;
+  name: string;
+  price: number;
+  image: string;
+  ingredients: string;
+  categoryIds: {
+    _id: string;
+    name: string;
+  }[];
+};
+
+export default function AdminPage() {
+  const [foods, setFoods] = useState<Food[]>([]);
+
+  useEffect(() => {
+    const getData = async () => {
+      const { data } = await api.get<Food[]>("/foods");
+      setFoods(data);
+    };
+
+    getData();
+  }, []);
+
   return (
-    <div className="w-screen h-screen flex justify-start  ">
-      <AppSidebar />
-      <div className="flex flex-col justify-center items-center pt-10">
-        <div className="w-[1171px] flex flex-col gap-6">
-          <div className="w-[1171px] flex justify-end">
-            <img
-              src="/misc/admin.jpg"
-              alt="admin icon"
-              className="w-9 h-9 rounded-full"
-            />
-          </div>
-          <OrderTable />
-        </div>
-      </div>
-    </div>
+    <main className="flex-1 p-8">
+      <Card className="grid grid-cols-5 gap-4 p-6">
+        <CreateFoodDialog />
+
+        {foods.map((food) => (
+          <FoodCard
+            key={food._id}
+            id={food._id}
+            name={food.name}
+            price={food.price}
+            ingredients={food.ingredients}
+            image={food.image}
+          />
+        ))}
+      </Card>
+    </main>
   );
 }
