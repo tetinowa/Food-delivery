@@ -14,8 +14,12 @@ import {
 } from "@/components/ui/sidebar";
 
 const items = [
-  { title: "Food menu", url: "#", icon: LayoutDashboard },
-  { title: "Orders", url: "#", icon: Truck },
+  {
+    title: "Food menu",
+    url: "/admin",
+    icon: LayoutDashboard,
+  },
+  { title: "Orders", url: "/orders", icon: Truck },
 ];
 
 export function AppSidebar() {

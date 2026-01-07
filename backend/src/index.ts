@@ -1,24 +1,21 @@
 import express from "express";
+import cors from "cors";
 import { connectToDatabase } from "./database/index.ts";
 import { FoodRouter } from "./routes/index.ts";
 
 const app = express();
 
+app.use(cors());
 app.use(express.json());
 
 app.use("/foods", FoodRouter);
 
-// For Vercel serverless functions
-export default async (req: any, res: any) => {
+const startServer = async () => {
   await connectToDatabase();
-  return app(req, res);
+
+  app.listen(3001, () => {
+    console.log(`Example app listening on port 3001`);
+  });
 };
 
-// For local development
-if (process.env.NODE_ENV !== "production") {
-  const PORT = process.env.PORT || 3001;
-  await connectToDatabase();
-  app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-  });
-}
+startServer();

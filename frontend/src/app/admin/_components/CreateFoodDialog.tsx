@@ -22,6 +22,8 @@ import { Plus, Upload } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { api } from "@/lib/axios";
+import { useState } from "react";
 
 const foodFormSchema = z.object({
   name: z.string().min(2, {
@@ -44,23 +46,50 @@ const foodFormSchema = z.object({
 
 type FoodFormValues = z.infer<typeof foodFormSchema>;
 
-export const CreateFoodDialog = () => {
+interface CreateFoodDialogProps {
+  onFoodCreated?: () => void;
+}
+
+export const CreateFoodDialog = ({ onFoodCreated }: CreateFoodDialogProps) => {
+  const [open, setOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const form = useForm<FoodFormValues>({
     resolver: zodResolver(foodFormSchema),
     defaultValues: {
       name: "",
       price: "",
       ingredients: "",
+      categoryId: "",
     },
   });
 
-  const onSubmit = (data: FoodFormValues) => {
-    console.log("Form data:", data);
-    form.reset();
+  const onSubmit = async (data: FoodFormValues) => {
+    try {
+      setIsSubmitting(true);
+
+      await api.post("/foods", {
+        name: data.name,
+        price: parseFloat(data.price),
+        ingredients: data.ingredients,
+        categoryId: data.categoryId || "64f1a1a1a1a1a1a1a1a1a1a1",
+      });
+
+      form.reset();
+      setOpen(false);
+
+      if (onFoodCreated) {
+        onFoodCreated();
+      }
+    } catch (error) {
+      console.error("Failed to create food:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button
           variant="outline"
@@ -141,8 +170,9 @@ export const CreateFoodDialog = () => {
               <Button
                 type="submit"
                 className="bg-black text-white hover:bg-black/90"
+                disabled={isSubmitting}
               >
-                Add Dish
+                {isSubmitting ? "Adding..." : "Add Dish"}
               </Button>
             </div>
           </form>
