@@ -11,7 +11,13 @@ import {
   type ColumnDef,
   type SortingState,
 } from "@tanstack/react-table";
-import { ChevronsUpDown, Calendar, ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
+import {
+  ChevronsUpDown,
+  Calendar,
+  ChevronLeft,
+  ChevronRight,
+  ChevronDown,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -42,28 +48,29 @@ export type Order = {
   status: "Pending" | "Delivered" | "Cancelled";
 };
 
-// Generate 32 placeholder orders to match "32 items" in design
 const generatePlaceholderOrders = (): Order[] => {
   const statuses: Order["status"][] = ["Pending", "Delivered", "Cancelled"];
   const orders: Order[] = [];
 
   for (let i = 1; i <= 32; i++) {
-    const statusIndex = i <= 3 ? 0 : i <= 7 ? 1 : 2; // First 3 pending, next 4 delivered, rest cancelled
-    const hasSingleFood = i === 2 || i === 3; // Rows 2 and 3 show single food with image
+    const statusIndex = i <= 3 ? 0 : i <= 7 ? 1 : 2;
 
     orders.push({
       id: String(i),
       orderNumber: 1,
       customer: "Test@gamil.com",
-      foods: hasSingleFood
-        ? [{ name: "Sunshine Stackers", image: "/foods/pancakes.jpg", quantity: 1 }]
-        : [
-            { name: "Sunshine Stackers", image: "/foods/pancakes.jpg", quantity: 1 },
-            { name: "Burger Deluxe", image: "/foods/burger.jpg", quantity: 1 },
-          ],
+      foods: [
+        {
+          name: "Sunshine Stackers",
+          image: "/foods/pancakes.jpg",
+          quantity: 1,
+        },
+        { name: "Burger Deluxe", image: "/foods/burger.jpg", quantity: 1 },
+      ],
       date: "2024/12/20",
       total: 26.97,
-      deliveryAddress: "2024/12/СБД, 12-р хороо, СБД нэгдсэн эмнэлэг Sbd negdse...",
+      deliveryAddress:
+        "2024/12/СБД, 12-р хороо, СБД нэгдсэн эмнэлэг Sbd negdse...",
       status: statuses[statusIndex],
     });
   }
@@ -88,7 +95,9 @@ const StatusBadge = ({
 
   return (
     <Select value={status} onValueChange={onChange}>
-      <SelectTrigger className={`w-28 h-8 text-sm bg-white border rounded-full ${statusStyles[status]}`}>
+      <SelectTrigger
+        className={`w-28 h-8 text-sm bg-white border rounded-full ${statusStyles[status]}`}
+      >
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
@@ -101,6 +110,8 @@ const StatusBadge = ({
 };
 
 const FoodCell = ({ foods }: { foods: Order["foods"] }) => {
+  const [isOpen, setIsOpen] = React.useState(false);
+
   if (foods.length === 1) {
     return (
       <div className="flex items-center gap-3">
@@ -119,9 +130,34 @@ const FoodCell = ({ foods }: { foods: Order["foods"] }) => {
   }
 
   return (
-    <div className="flex items-center gap-2">
-      <span className="text-sm">{foods.length} foods</span>
-      <ChevronDown className="w-4 h-4 text-gray-400" />
+    <div className="relative">
+      <div
+        className="flex items-center gap-2 cursor-pointer"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <span className="text-sm">{foods.length} foods</span>
+        <ChevronDown
+          className={`w-4 h-4 text-gray-400 transition-transform ${isOpen ? "rotate-180" : ""}`}
+        />
+      </div>
+      {isOpen && (
+        <div className="absolute top-8 left-0 bg-white border border-gray-200 rounded-lg shadow-lg p-2 z-10 min-w-48">
+          {foods.map((food, index) => (
+            <div key={index} className="flex items-center gap-3 py-2">
+              <img
+                src={food.image}
+                alt={food.name}
+                className="w-8 h-8 rounded-lg object-cover bg-gray-100"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = "none";
+                }}
+              />
+              <span className="text-sm">{food.name}</span>
+              <span className="text-sm text-gray-400">x {food.quantity}</span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
@@ -274,7 +310,6 @@ export function OrderTable() {
   const pageCount = table.getPageCount();
   const currentPage = table.getState().pagination.pageIndex + 1;
 
-  // Generate pagination numbers
   const getPaginationNumbers = () => {
     const pages: (number | string)[] = [];
 
@@ -283,7 +318,6 @@ export function OrderTable() {
         pages.push(i);
       }
     } else {
-      // Always show first 5 pages
       for (let i = 1; i <= 5; i++) {
         pages.push(i);
       }
@@ -296,7 +330,6 @@ export function OrderTable() {
 
   return (
     <div className="w-full">
-      {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-xl font-semibold text-gray-900">Orders</h1>
@@ -316,11 +349,13 @@ export function OrderTable() {
         </div>
       </div>
 
-      {/* Table */}
       <Table>
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id} className="border-b border-gray-200 hover:bg-transparent">
+            <TableRow
+              key={headerGroup.id}
+              className="border-b border-gray-200 hover:bg-transparent"
+            >
               {headerGroup.headers.map((header) => (
                 <TableHead
                   key={header.id}
@@ -328,7 +363,10 @@ export function OrderTable() {
                 >
                   {header.isPlaceholder
                     ? null
-                    : flexRender(header.column.columnDef.header, header.getContext())}
+                    : flexRender(
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
                 </TableHead>
               ))}
             </TableRow>
@@ -359,7 +397,6 @@ export function OrderTable() {
         </TableBody>
       </Table>
 
-      {/* Pagination */}
       <div className="flex items-center justify-center gap-2 mt-8 pb-2">
         <Button
           variant="ghost"
