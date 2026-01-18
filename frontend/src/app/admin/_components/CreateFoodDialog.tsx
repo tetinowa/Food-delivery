@@ -23,7 +23,14 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { api } from "@/lib/axios";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const foodFormSchema = z.object({
   name: z.string().min(2, {
@@ -46,13 +53,19 @@ const foodFormSchema = z.object({
 
 type FoodFormValues = z.infer<typeof foodFormSchema>;
 
+type Category = { _id: string; name: string };
+
 interface CreateFoodDialogProps {
   onFoodCreated?: () => void;
 }
 
 export const CreateFoodDialog = ({ onFoodCreated }: CreateFoodDialogProps) => {
   const [open, setOpen] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const form = useForm<FoodFormValues>({
     resolver: zodResolver(foodFormSchema),
@@ -87,7 +100,14 @@ export const CreateFoodDialog = ({ onFoodCreated }: CreateFoodDialogProps) => {
       setIsSubmitting(false);
     }
   };
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const { data } = await api.get<Category[]>("/categories");
+      setCategories(data);
+    };
 
+    fetchCategories();
+  }, []);
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -100,7 +120,7 @@ export const CreateFoodDialog = ({ onFoodCreated }: CreateFoodDialogProps) => {
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-150">
         <DialogHeader>
           <DialogTitle>Add new Dish</DialogTitle>
         </DialogHeader>
@@ -137,7 +157,33 @@ export const CreateFoodDialog = ({ onFoodCreated }: CreateFoodDialogProps) => {
                 )}
               />
             </div>
-
+            <FormField
+              control={form.control}
+              name="categoryId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Category</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a category" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {categories.map((category) => (
+                        <SelectItem key={category._id} value={category._id}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="ingredients"
@@ -147,7 +193,7 @@ export const CreateFoodDialog = ({ onFoodCreated }: CreateFoodDialogProps) => {
                   <FormControl>
                     <Textarea
                       placeholder="List ingredients..."
-                      className="min-h-[80px]"
+                      className="min-h-20"
                       {...field}
                     />
                   </FormControl>

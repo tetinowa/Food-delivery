@@ -71,10 +71,10 @@ export function CartDialog({ open, onOpenChange }: CartDialogProps) {
           onConfirm={handleRemoveItem}
         />
         <div className="">
-          <div className="h-full flex flex-col">
-            <div className="flex items-center justify-between p-6 border-b border-gray-600">
+          <div className="flex flex-col p-8 gap-6 w-133.75 h-256">
+            <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-red-500 rounded flex items-center justify-center">
+                <div className="w-8 h-8 rounded flex items-center justify-center">
                   <ShoppingCartIcon className="text-white text-sm" />
                 </div>
                 <h1 className="text-xl font-semibold text-white">
@@ -85,84 +85,74 @@ export function CartDialog({ open, onOpenChange }: CartDialogProps) {
                 variant="ghost"
                 size="icon"
                 onClick={handleClose}
-                className="text-white hover:bg-white/10"
+                className="text-white hover:bg-white/10 rounded-full border border-white w-9 h-9"
               >
                 <X className="h-5 w-5" />
               </Button>
             </div>
-            <div className="flex">
-              <div className="flex gap-2 p-4 border-b border-gray-600">
+            <div className="flex rounded-full bg-white p gap-2">
+              <div className="flex flex-2 gap-2 p-1 border-b border-gray-600">
                 <Button className="flex-1 h-10 bg-red-500 hover:bg-red-600 text-white rounded-full">
                   Cart
                 </Button>
                 <Button
-                  variant="outline"
-                  className="flex-1 h-10 rounded-full border-gray-600 text-white hover:bg-white/10"
+                  variant="ghost"
+                  className="flex-1 h-10 rounded-full border-gray-600 text-back hover:bg-red-500 hover:text-white"
                 >
                   Order
                 </Button>
               </div>
             </div>
-            <div className="">
-              <div className="flex-1 overflow-y-auto bg-white rounded-tl-3xl">
-                <div className="p-6">
-                  <h2 className="text-lg font-semibold mb-4 text-black">
-                    My cart
-                  </h2>
-                  <div className="space-y-4 mb-6">
-                    {items.map((item) => (
-                      <CartItem
-                        key={item.id}
-                        {...item}
-                        onRemove={confirmRemoveItem}
-                        onUpdateQuantity={updateQuantity}
-                      />
-                    ))}
-                  </div>
 
-                  <div className="space-y-4">
-                    <div>
-                      <h3 className="font-semibold mb-2 text-black">
-                        Delivery location
-                      </h3>
-                      <Input
-                        placeholder="Please share your complete address"
-                        className="h-12 bg-gray-100 border-gray-200"
-                      />
-                    </div>
+            <div className="bg-white rounded-3xl p-6">
+              <h2 className="text-lg font-semibold mb-4 text-black">My cart</h2>
+              <div className="space-y-4">
+                {items.map((item) => (
+                  <CartItem
+                    key={item.id}
+                    {...item}
+                    onRemove={confirmRemoveItem}
+                    onUpdateQuantity={updateQuantity}
+                  />
+                ))}
+              </div>
+              <div className="mt-4">
+                <h3 className="font-semibold mb-2 text-black">
+                  Delivery location
+                </h3>
+                <Input
+                  placeholder="Please share your complete address"
+                  className="h-12 bg-gray-100 border-gray-200"
+                />
+              </div>
+            </div>
 
-                    <div>
-                      <h3 className="font-semibold mb-3 text-black">
-                        Payment info
-                      </h3>
-                      <div className="space-y-2 mb-4">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Items</span>
-                          <span className="font-semibold text-black">
-                            ${totalPrice.toFixed(2)}
-                          </span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Shipping</span>
-                          <span className="font-semibold text-black">
-                            ${deliveryFee.toFixed(2)}
-                          </span>
-                        </div>
-                        <div className="border-t border-gray-200 pt-2 flex justify-between font-bold text-black">
-                          <span>Total</span>
-                          <span>${total.toFixed(2)}</span>
-                        </div>
-                      </div>
-                      <Button
-                        className="w-full h-12 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-full"
-                        onClick={() => setStep("address")}
-                      >
-                        Checkout
-                      </Button>
-                    </div>
-                  </div>
+            <div className="bg-white rounded-3xl p-6">
+              <h3 className="font-semibold mb-3 text-black">Payment info</h3>
+              <div className="space-y-2 mb-4">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Items</span>
+                  <span className="font-semibold text-black">
+                    ${totalPrice.toFixed(2)}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Shipping</span>
+                  <span className="font-semibold text-black">
+                    ${deliveryFee.toFixed(2)}
+                  </span>
+                </div>
+                <div className="border-t border-gray-200 pt-2 flex justify-between font-bold text-black">
+                  <span>Total</span>
+                  <span>${total.toFixed(2)}</span>
                 </div>
               </div>
+              <Button
+                className="w-full h-12 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-full"
+                onClick={() => setStep("address")}
+              >
+                Checkout
+              </Button>
             </div>
           </div>
         </div>
@@ -174,7 +164,7 @@ export function CartDialog({ open, onOpenChange }: CartDialogProps) {
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
-        className="sm:max-w-[535px] w-full bg-[#404040] p-0 border-0"
+        className="sm:max-w-133.75 w-full bg-[#404040] p-0 border-0"
       >
         {renderContent()}
       </SheetContent>

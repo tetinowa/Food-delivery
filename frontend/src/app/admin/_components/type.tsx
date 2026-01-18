@@ -3,7 +3,8 @@ type Food = {
   name: string;
   price: number;
   image: string;
-  ingredients: string;
+  description: string;
+  ingredients?: string;
   categoryIds: {
     _id: string;
     name: string;

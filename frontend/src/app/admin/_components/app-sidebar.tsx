@@ -26,14 +26,10 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarContent>
-        <SidebarGroup className="flex gap-10 w-[205px] h-[1024px] pt-9 pb-9 px-5">
+        <SidebarGroup className="flex gap-10 w-51.25 h-256 pt-9 pb-9 px-5">
           <SidebarGroupLabel>
             <div className="flex gap-2 justify-center items-center">
-              <img
-                src="/misc/logo.svg"
-                alt="logo"
-                className="w-[40px] h-[40px]"
-              />
+              <img src="/misc/logo.svg" alt="logo" className="w-10 h-10" />
               <div>
                 <div className="flex text-black text-[18px] font-semibold leading-7">
                   NomNom
