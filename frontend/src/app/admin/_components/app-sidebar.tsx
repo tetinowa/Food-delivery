@@ -1,4 +1,7 @@
+"use client";
+
 import { Search, LayoutDashboard, Truck } from "lucide-react";
+import { usePathname } from "next/navigation";
 
 import {
   Sidebar,
@@ -19,10 +22,12 @@ const items = [
     url: "/admin",
     icon: LayoutDashboard,
   },
-  { title: "Orders", url: "/orders", icon: Truck },
+  { title: "Orders", url: "/admin/orders", icon: Truck },
 ];
 
 export function AppSidebar() {
+  const pathname = usePathname();
+
   return (
     <Sidebar>
       <SidebarContent>
@@ -42,16 +47,26 @@ export function AppSidebar() {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="flex flex-col gap-6">
-              {items.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <a href={item.url}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </a>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              {items.map((item) => {
+                const isActive = pathname === item.url;
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild>
+                      <a
+                        href={item.url}
+                        className={`flex justify-center items-center gap-2 px-6 rounded-md transition-colors ${
+                          isActive ? "bg-black text-white" : "hover:bg-gray-100"
+                        }`}
+                      >
+                        <div className="flex justify-center items-center gap-2">
+                          <item.icon className="w-5.5 h-5.5" />
+                          <span>{item.title}</span>
+                        </div>
+                      </a>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

@@ -10,7 +10,13 @@ const orderSchema = new Schema(
         price: { type: Number, required: true },
       },
     ],
-    status: { type: String, required: true, default: "pending" },
+    totalPrice: { type: Number, required: true },
+    deliveryAddress: { type: String, required: true },
+    status: {
+      type: String,
+      enum: ["Pending", "Delivered", "Cancelled"],
+      default: "Pending",
+    },
   },
   { timestamps: true }
 );

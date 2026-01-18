@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Upload } from "lucide-react";
+import { Plus, Upload, X } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -45,22 +45,46 @@ const foodFormSchema = z.object({
       message: "Price must be a valid positive number.",
     }
   ),
+  image: z.string().min(1, {
+    message: "Image is required.",
+  }),
   ingredients: z.string().min(5, {
     message: "Ingredients must be at least 5 characters.",
   }),
-  categoryId: z.string(),
+  categoryId: z.string().min(1, { message: "Category is required." }),
 });
 
 type FoodFormValues = z.infer<typeof foodFormSchema>;
 
 type Category = { _id: string; name: string };
 
-interface CreateFoodDialogProps {
-  onFoodCreated?: () => void;
+interface FoodData {
+  _id: string;
+  name: string;
+  price: number;
+  image: string;
+  ingredients?: string;
+  categoryId: string;
 }
 
-export const CreateFoodDialog = ({ onFoodCreated }: CreateFoodDialogProps) => {
-  const [open, setOpen] = useState(false);
+interface CreateFoodDialogProps {
+  onFoodCreated?: () => void;
+  editFood?: FoodData;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}
+
+export const CreateFoodDialog = ({
+  onFoodCreated,
+  editFood,
+  open: controlledOpen,
+  onOpenChange,
+}: CreateFoodDialogProps) => {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : internalOpen;
+  const setOpen = isControlled ? onOpenChange! : setInternalOpen;
+  const isEditMode = !!editFood;
   const [categories, setCategories] = useState<Category[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
@@ -70,32 +94,97 @@ export const CreateFoodDialog = ({ onFoodCreated }: CreateFoodDialogProps) => {
   const form = useForm<FoodFormValues>({
     resolver: zodResolver(foodFormSchema),
     defaultValues: {
-      name: "",
-      price: "",
-      ingredients: "",
-      categoryId: "",
+      name: editFood?.name || "",
+      price: editFood?.price?.toString() || "",
+      ingredients: editFood?.ingredients || "",
+      image: editFood?.image || "",
+      categoryId: editFood?.categoryId || "",
     },
   });
+
+  useEffect(() => {
+    if (editFood && open) {
+      form.reset({
+        name: editFood.name,
+        price: editFood.price.toString(),
+        ingredients: editFood.ingredients || "",
+        image: editFood.image,
+        categoryId: editFood.categoryId,
+      });
+      setUploadedImageUrl(editFood.image || null);
+    }
+  }, [editFood, open, form]);
+  const handleFileUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+
+    try {
+      const response = await fetch(
+        `/api/upload?filename=${encodeURIComponent(file.name)}`,
+        {
+          method: "POST",
+          body: file,
+        }
+      );
+
+      if (!response.ok) {
+        const text = await response.text();
+        const error = text ? JSON.parse(text) : { error: "Unknown error" };
+        console.error("Upload error:", error);
+        alert(`Upload failed: ${error.details || error.error}`);
+        return;
+      }
+
+      const blob = await response.json();
+      setUploadedImageUrl(blob.url);
+      form.setValue("image", blob.url);
+    } catch (error) {
+      console.error("Upload failed:", error);
+      alert("Upload failed. Please try again.");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const removeImage = () => {
+    setUploadedImageUrl("");
+    form.setValue("image", "");
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
 
   const onSubmit = async (data: FoodFormValues) => {
     try {
       setIsSubmitting(true);
 
-      await api.post("/foods", {
+      const payload = {
         name: data.name,
         price: parseFloat(data.price),
+        image: data.image,
         ingredients: data.ingredients,
         categoryId: data.categoryId || "64f1a1a1a1a1a1a1a1a1a1a1",
-      });
+      };
+
+      if (isEditMode) {
+        await api.put(`/foods/${editFood._id}`, payload);
+      } else {
+        await api.post("/foods", payload);
+      }
 
       form.reset();
+      setUploadedImageUrl(null);
       setOpen(false);
 
       if (onFoodCreated) {
         onFoodCreated();
       }
     } catch (error) {
-      console.error("Failed to create food:", error);
+      console.error(isEditMode ? "Failed to update food:" : "Failed to create food:", error);
     } finally {
       setIsSubmitting(false);
     }
@@ -110,19 +199,21 @@ export const CreateFoodDialog = ({ onFoodCreated }: CreateFoodDialogProps) => {
   }, []);
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button
-          variant="outline"
-          className="w-full h-full flex flex-col gap-4 items-center justify-center p-4"
-        >
-          <Plus />
-          Add New Dish
-        </Button>
-      </DialogTrigger>
+      {!isEditMode && (
+        <DialogTrigger asChild>
+          <Button
+            variant="outline"
+            className="w-full h-full flex flex-col gap-4 items-center justify-center p-4"
+          >
+            <Plus />
+            Add New Dish
+          </Button>
+        </DialogTrigger>
+      )}
 
       <DialogContent className="sm:max-w-150">
         <DialogHeader>
-          <DialogTitle>Add new Dish</DialogTitle>
+          <DialogTitle>{isEditMode ? "Edit Dish" : "Add new Dish"}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form
@@ -201,16 +292,56 @@ export const CreateFoodDialog = ({ onFoodCreated }: CreateFoodDialogProps) => {
                 </FormItem>
               )}
             />
-
-            <div className="space-y-2">
-              <FormLabel>Food image</FormLabel>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-12 flex flex-col items-center justify-center hover:border-gray-400 transition-colors cursor-pointer">
-                <Upload className="w-8 h-8 text-gray-400 mb-3" />
-                <p className="text-sm text-gray-600">
-                  Choose a file or drag & drop it here
-                </p>
-              </div>
-            </div>
+            <FormField
+              control={form.control}
+              name="image"
+              render={() => (
+                <FormItem>
+                  <FormLabel>Food image</FormLabel>
+                  <FormControl>
+                    <div>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileUpload}
+                        className="hidden"
+                        id="file-upload"
+                      />
+                      {uploadedImageUrl ? (
+                        <div className="relative border-2 border-gray-300 rounded-lg overflow-hidden">
+                          <img
+                            src={uploadedImageUrl}
+                            alt="Uploaded food"
+                            className="w-full h-48 object-cover"
+                          />
+                          <button
+                            type="button"
+                            onClick={removeImage}
+                            className="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ) : (
+                        <label
+                          htmlFor="file-upload"
+                          className="border-2 border-dashed border-gray-300 rounded-lg p-12 flex flex-col items-center justify-center hover:border-gray-400 transition-colors cursor-pointer"
+                        >
+                          <Upload className="w-8 h-8 text-gray-400 mb-3" />
+                          <p className="text-sm text-gray-600">
+                            {isUploading
+                              ? "Uploading..."
+                              : "Choose a file or drag & drop it here"}
+                          </p>
+                        </label>
+                      )}
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <div className="flex justify-end">
               <Button
@@ -218,7 +349,13 @@ export const CreateFoodDialog = ({ onFoodCreated }: CreateFoodDialogProps) => {
                 className="bg-black text-white hover:bg-black/90"
                 disabled={isSubmitting}
               >
-                {isSubmitting ? "Adding..." : "Add Dish"}
+                {isSubmitting
+                  ? isEditMode
+                    ? "Saving..."
+                    : "Adding..."
+                  : isEditMode
+                    ? "Save Changes"
+                    : "Add Dish"}
               </Button>
             </div>
           </form>

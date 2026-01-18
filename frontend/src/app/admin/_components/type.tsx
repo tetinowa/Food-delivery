@@ -5,9 +5,7 @@ type Food = {
   image: string;
   description: string;
   ingredients?: string;
-  categoryIds: {
-    _id: string;
-    name: string;
-  }[];
+  category: string;
+  categoryId: string;
 };
 export type { Food };
