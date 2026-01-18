@@ -5,6 +5,19 @@ export interface FoodCardProps {
   description: string;
   imageSrc: string;
   imageAlt?: string;
+  category?: string;
+  ingredients?: string;
+}
+
+export interface FoodFromAPI {
+  _id: string;
+  name: string;
+  price: number;
+  description: string;
+  image?: string;
+  category: string;
+  categoryId: string;
+  ingredients?: string;
 }
 
 export interface OrderProps {

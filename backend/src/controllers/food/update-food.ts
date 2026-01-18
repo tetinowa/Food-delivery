@@ -5,19 +5,16 @@ export const updateFood: RequestHandler = async (req, res) => {
   const { id } = req.params;
   const body = req.body;
 
-  const food = await FoodModel.findByIdAndUpdate(
-    id,
-    {
-      name: body.name,
-      price: body.price,
-      image: body.image || "",
-      description: body.description || body.ingredients || "",
-      ingredients: body.ingredients || "",
-      category: body.category || "General",
-      categoryId: body.categoryId,
-    },
-    { new: true }
-  );
+  const updateData: Record<string, unknown> = {};
+  if (body.name !== undefined) updateData.name = body.name;
+  if (body.price !== undefined) updateData.price = body.price;
+  if (body.image !== undefined) updateData.image = body.image;
+  if (body.description !== undefined) updateData.description = body.description;
+  if (body.ingredients !== undefined) updateData.ingredients = body.ingredients;
+  if (body.category !== undefined) updateData.category = body.category;
+  if (body.categoryId !== undefined) updateData.categoryId = body.categoryId;
+
+  const food = await FoodModel.findByIdAndUpdate(id, updateData, { new: true });
 
   if (!food) {
     res.status(404).json({ error: "Food not found" });
