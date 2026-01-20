@@ -30,7 +30,7 @@ export function CartItem({
         alt={name}
         width={80}
         height={80}
-        className="w-20 h-20 rounded-xl object-cover flex-shrink-0"
+        className="w-20 h-20 rounded-xl object-cover shrink-0"
       />
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between mb-2">
@@ -41,7 +41,7 @@ export function CartItem({
           <Button
             variant="ghost"
             size="icon"
-            className="text-gray-400 hover:text-red-500 h-6 w-6 flex-shrink-0"
+            className="text-gray-400 hover:text-red-500 h-6 w-6 shrink-0"
             onClick={() => onRemove(id)}
           >
             <X className="h-4 w-4" />

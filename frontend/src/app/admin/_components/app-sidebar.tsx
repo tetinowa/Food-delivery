@@ -51,10 +51,10 @@ export function AppSidebar() {
                 const isActive = pathname === item.url;
                 return (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild>
+                    <SidebarMenuButton asChild className="flex flex-col gap-6">
                       <a
                         href={item.url}
-                        className={`flex justify-center items-center gap-2 px-6 rounded-md transition-colors ${
+                        className={`flex items-center gap-2 px-6 py-1 rounded-full! transition-colors ${
                           isActive ? "bg-black text-white" : "hover:bg-gray-100"
                         }`}
                       >

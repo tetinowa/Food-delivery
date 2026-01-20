@@ -9,6 +9,7 @@ import { useCart } from "@/contexts/cart-context";
 import { CartEmptyState } from "./cart/CartEmptyState";
 import { CartSuccessState } from "./cart/CartSuccessState";
 import { CartAddressForm } from "./cart/CartAddressForm";
+import { CartOrder } from "./cart/CartOrder";
 import { CartItem } from "./cart/CartItem";
 import { RemoveItemDialog } from "./cart/RemoveItemDialog";
 
@@ -20,7 +21,7 @@ interface CartDialogProps {
 export function CartDialog({ open, onOpenChange }: CartDialogProps) {
   const { items, removeItem, updateQuantity, totalPrice, clearCart } =
     useCart();
-  const [step, setStep] = useState<"cart" | "address" | "success">("cart");
+  const [step, setStep] = useState<"cart" | "order" | "success">("cart");
   const [showRemoveDialog, setShowRemoveDialog] = useState(false);
   const [itemToRemove, setItemToRemove] = useState<string | null>(null);
 
@@ -54,12 +55,14 @@ export function CartDialog({ open, onOpenChange }: CartDialogProps) {
       return <CartSuccessState onClose={handleClose} onClearCart={clearCart} />;
     }
 
-    if (step === "address") {
+    if (step === "order") {
       return (
-        <CartAddressForm
-          onBack={() => setStep("cart")}
-          onSubmit={() => setStep("success")}
-        />
+        <div className="flex flex-col gap-4">
+          <CartOrder
+            onBack={() => setStep("cart")}
+            onSubmit={() => setStep("success")}
+          />
+        </div>
       );
     }
 
@@ -92,12 +95,16 @@ export function CartDialog({ open, onOpenChange }: CartDialogProps) {
             </div>
             <div className="flex rounded-full bg-white p gap-2">
               <div className="flex flex-2 gap-2 p-1 border-b border-gray-600">
-                <Button className="flex-1 h-10 bg-red-500 hover:bg-red-600 text-white rounded-full">
+                <Button
+                  className="flex-1 h-10 bg-red-500 hover:bg-red-600 text-white rounded-full"
+                  onClick={() => setStep("cart")}
+                >
                   Cart
                 </Button>
                 <Button
                   variant="ghost"
                   className="flex-1 h-10 rounded-full border-gray-600 text-back hover:bg-red-500 hover:text-white"
+                  onClick={() => setStep("order")}
                 >
                   Order
                 </Button>
@@ -149,7 +156,7 @@ export function CartDialog({ open, onOpenChange }: CartDialogProps) {
               </div>
               <Button
                 className="w-full h-12 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-full"
-                onClick={() => setStep("address")}
+                onClick={() => setStep("order")}
               >
                 Checkout
               </Button>
