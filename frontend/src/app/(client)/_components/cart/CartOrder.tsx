@@ -110,7 +110,11 @@ function OrderCard({ order }: { order: Order }) {
   return (
     <div className="flex flex-col px-3 gap-3">
       <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-gray-500">{order.id}</span>
+        <div className="flex gap-8 items-center text-black font-bold text-[16px] ">
+          <span>{order.total}</span>
+          <span>{order.id}</span>
+        </div>
+
         <div
           className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full ${status.bgColor}`}
         >
