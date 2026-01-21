@@ -6,6 +6,7 @@ import { LocationDialog } from "./location-dialog";
 import { CartDialog } from "./cart-dialog";
 import { Logo } from "./logo";
 import { useState } from "react";
+import { useAuth } from "@/contexts/AuthProvider";
 
 export function Header() {
   const { totalItems } = useCart();
@@ -13,6 +14,7 @@ export function Header() {
   const handleCartClick = () => {
     setIsCartDialogOpen(true);
   };
+  const { user } = useAuth();
 
   return (
     <header className="w-full h-16 bg-[#18181B] flex items-center justify-between pl-22 pr-22 pt-3 pb-3">
@@ -41,7 +43,7 @@ export function Header() {
           variant="default"
           className="outline-0 w-9 h-9 bg-[#EF4444] rounded-full"
         >
-          <User />
+          {user ? <></> : <User />}
         </Button>
       </div>
     </header>
