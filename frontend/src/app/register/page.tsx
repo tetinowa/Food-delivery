@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
+import { useState } from "react";
 
 const formSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -38,8 +39,10 @@ export default function Login() {
 
   const onSubmit = (values: FormSchemaType) => {
     console.log(values);
-    // TODO: Implement login logic
   };
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   return (
     <div className="w-screen h-screen flex items-center justify-center">
@@ -59,6 +62,7 @@ export default function Login() {
                 <FormField
                   control={form.control}
                   name="email"
+                  onChange={(e) => setEmail(e.target.value)}
                   render={({ field }) => (
                     <div>
                       <FormItem>

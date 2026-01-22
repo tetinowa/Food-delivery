@@ -19,6 +19,7 @@ import {
   PasswordInputField,
   AuthFormActions,
 } from "@/app/(client)/_components/auth";
+import { useAuth } from "@/contexts/AuthProvider";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -36,8 +37,10 @@ export default function Login() {
     },
   });
 
+  const { login } = useAuth();
+
   const onSubmit = (values: LoginFormType) => {
-    console.log("Login:", values);
+    login(values.email, values.password);
   };
 
   return (

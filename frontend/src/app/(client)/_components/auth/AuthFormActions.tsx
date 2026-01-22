@@ -1,4 +1,3 @@
-import { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 
@@ -19,7 +18,10 @@ export function AuthFormActions({
 }: AuthFormActionsProps) {
   return (
     <div className="flex flex-col gap-3">
-      <Button type="submit" className="bg-black text-white w-full h-12 px-6">
+      <Button
+        type="submit"
+        className="bg-black text-white w-full h-12 px-6"
+      >
         {buttonText}
         <ArrowRight className="ml-2 h-4 w-4" />
       </Button>
@@ -27,7 +29,10 @@ export function AuthFormActions({
       <p className="text-sm text-center text-muted-foreground">
         {footerText}{" "}
         {footerLinkHref ? (
-          <a href={footerLinkHref} className="text-black underline cursor-pointer">
+          <a
+            href={footerLinkHref}
+            className="text-black underline cursor-pointer"
+          >
             {footerLinkText}
           </a>
         ) : (
