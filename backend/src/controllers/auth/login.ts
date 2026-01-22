@@ -1,0 +1,23 @@
+import type { RequestHandler } from "express";
+import { UserModel } from "../../database/schema/user.schema.ts";
+import jwt from "jsonwebtoken";
+
+export const login: RequestHandler = async (req, res) => {
+  const { username, password } = req.body;
+
+  const user = await UserModel.findOne({ username: username });
+
+  if (!user) return res.status(404).json({ message: "User not found" });
+
+  const { password: userPassword, ...restUserInfo } = user;
+
+  if (userPassword !== password)
+    return res.status(401).json({ message: "Username or password wrong" });
+
+  const accessToken = jwt.sign({ user: restUserInfo }, "secretkey");
+
+  res.status(200).json({
+    user: restUserInfo,
+    accessToken,
+  });
+};

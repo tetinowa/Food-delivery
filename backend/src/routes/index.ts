@@ -1,2 +1,3 @@
-export { foodRouter as FoodRouter } from "./food.router.ts";
-export { CategoryRouter as CategoryRouter } from "./category.router.ts";
+export * from "./food.router.ts";
+export * from "./category.router.ts";
+export * from "./auth.router.ts";

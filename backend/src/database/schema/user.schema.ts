@@ -7,6 +7,12 @@ const userSchema = new Schema(
     password: { type: String, required: true },
     profileImage: { type: String, required: false },
     address: { type: String, required: false },
+    role: {
+      type: String,
+      enum: ["user", "admin"],
+      default: "user",
+      required: true,
+    },
   },
   { timestamps: true }
 );
