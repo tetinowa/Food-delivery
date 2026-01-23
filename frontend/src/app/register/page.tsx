@@ -6,11 +6,11 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import {
   Form,
-  FormControl,
+  FormLabel,
   FormDescription,
+  FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
@@ -62,7 +62,6 @@ export default function Login() {
                 <FormField
                   control={form.control}
                   name="email"
-                  onChange={(e) => setEmail(e.target.value)}
                   render={({ field }) => (
                     <div>
                       <FormItem>
