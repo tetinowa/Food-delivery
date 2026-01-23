@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ShoppingCartIcon, X } from "lucide-react";
@@ -173,6 +173,7 @@ export function CartDialog({ open, onOpenChange }: CartDialogProps) {
         side="right"
         className="sm:max-w-133.75 w-full bg-[#404040] p-0 border-0"
       >
+        <SheetTitle className="sr-only">Shopping Cart</SheetTitle>
         {renderContent()}
       </SheetContent>
     </Sheet>

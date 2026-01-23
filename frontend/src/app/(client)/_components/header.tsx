@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { UserAvatar } from "@/components/ui/user-avatar";
 import { ShoppingCart, User } from "lucide-react";
 import { DynamicIcon } from "lucide-react/dynamic";
 import { useCart } from "@/contexts/cart-context";
@@ -39,12 +40,16 @@ export function Header() {
           open={isCartDialogOpen}
           onOpenChange={setIsCartDialogOpen}
         />
-        <Button
-          variant="default"
-          className="outline-0 w-9 h-9 bg-[#EF4444] rounded-full"
-        >
-          {user ? <></> : <User />}
-        </Button>
+        {user ? (
+          <UserAvatar name={user.name} />
+        ) : (
+          <Button
+            variant="default"
+            className="outline-0 w-9 h-9 bg-[#EF4444] rounded-full"
+          >
+            <User />
+          </Button>
+        )}
       </div>
     </header>
   );

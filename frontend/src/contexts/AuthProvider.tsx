@@ -44,9 +44,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
       password,
     });
 
-    const [user] = data;
-
-    setUser(user);
+    setUser(data.user);
 
     router.push("/");
   };
@@ -62,9 +60,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
       email,
     });
 
-    const [user] = data;
-
-    setUser(user);
+    setUser(data.user);
 
     router.push("/login");
   };
