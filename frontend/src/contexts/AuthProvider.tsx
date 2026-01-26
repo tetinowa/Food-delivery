@@ -7,8 +7,11 @@ import {
   createContext,
   PropsWithChildren,
   useContext,
+  useEffect,
   useState,
 } from "react";
+import { Toaster } from "@/components/ui/sonner";
+import { toast } from "sonner";
 
 type AuthContextType = {
   user: User | null;
@@ -30,6 +33,10 @@ type Admin = {
   name: string;
   email: string;
 };
+type LoginResponse = {
+  user: User;
+  accessToken: string;
+};
 
 export const AuthContext = createContext({} as AuthContextType);
 
@@ -39,14 +46,22 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
   const router = useRouter();
 
   const login = async (email: string, password: string) => {
-    const { data } = await api.post("/auth/login", {
-      email,
-      password,
-    });
+    try {
+      const { data } = await api.post("/auth/login", {
+        email,
+        password,
+      });
 
-    setUser(data.user);
+      const { user, accessToken } = data;
 
-    router.push("/");
+      localStorage.setItem("accessToken", accessToken);
+
+      setUser(user);
+
+      router.push("/");
+    } catch {
+      toast.error("Invalid email or password");
+    }
   };
 
   const register = async (
@@ -64,6 +79,16 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
 
     router.push("/login");
   };
+
+  useEffect(() => {
+    const accessToken = localStorage.getItem("accessToken");
+
+api.post("/auth/me").then(({data}) => {setUser};
+
+    if (accessToken) {
+      setUser({});
+    }
+  }, []);
 
   return (
     <AuthContext.Provider value={{ user, admin, login, register }}>

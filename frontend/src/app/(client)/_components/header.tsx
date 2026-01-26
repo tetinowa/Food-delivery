@@ -8,14 +8,19 @@ import { CartDialog } from "./cart-dialog";
 import { Logo } from "./logo";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthProvider";
+import { useRouter } from "next/navigation";
 
 export function Header() {
   const { totalItems } = useCart();
   const [isCartDialogOpen, setIsCartDialogOpen] = useState(false);
+  const router = useRouter();
   const handleCartClick = () => {
     setIsCartDialogOpen(true);
   };
   const { user } = useAuth();
+  const handleLogin = () => {
+    router.push("/login");
+  };
 
   return (
     <header className="w-full h-16 bg-[#18181B] flex items-center justify-between pl-22 pr-22 pt-3 pb-3">
@@ -46,6 +51,7 @@ export function Header() {
           <Button
             variant="default"
             className="outline-0 w-9 h-9 bg-[#EF4444] rounded-full"
+            onClick={handleLogin}
           >
             <User />
           </Button>
