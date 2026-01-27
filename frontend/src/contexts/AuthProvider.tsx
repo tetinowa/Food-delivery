@@ -83,11 +83,18 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
   useEffect(() => {
     const accessToken = localStorage.getItem("accessToken");
 
-api.post("/auth/me").then(({data}) => {setUser};
-
-    if (accessToken) {
-      setUser({});
-    }
+    const fetchMe = async () => {
+      try {
+        const { data } = await api.get<{ user: User }>("/auth/me", {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+        setUser(data.user);
+      } catch {
+        localStorage.removeItem("accessToken");
+      }
+    };
   }, []);
 
   return (
