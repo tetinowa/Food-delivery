@@ -12,7 +12,7 @@ export const getMe: RequestHandler = async (req, res) => {
   const token = authorization.split(" ")[1] as string;
 
   try {
-    const { user } = jwt.verify(token, "Secret") as {
+    const { user } = jwt.verify(token, "secretkey") as {
       user: Omit<typeof UserModel, "password">;
     };
     res.status(200).json({ user });

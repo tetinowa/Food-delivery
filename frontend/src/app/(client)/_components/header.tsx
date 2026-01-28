@@ -1,11 +1,10 @@
 import { Button } from "@/components/ui/button";
-import { UserAvatar } from "@/components/ui/user-avatar";
 import { ShoppingCart, User } from "lucide-react";
-import { DynamicIcon } from "lucide-react/dynamic";
 import { useCart } from "@/contexts/cart-context";
 import { LocationDialog } from "./location-dialog";
 import { CartDialog } from "./cart-dialog";
 import { Logo } from "./logo";
+import { AvatarDropdown } from "./user-dropdown";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthProvider";
 import { useRouter } from "next/navigation";
@@ -46,7 +45,7 @@ export function Header() {
           onOpenChange={setIsCartDialogOpen}
         />
         {user ? (
-          <UserAvatar name={user.name} />
+          <AvatarDropdown />
         ) : (
           <Button
             variant="default"

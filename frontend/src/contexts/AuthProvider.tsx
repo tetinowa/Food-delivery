@@ -22,11 +22,13 @@ type AuthContextType = {
     password: string,
     email: string
   ) => Promise<void>;
+  logout: () => void;
 };
 type User = {
   _id: string;
   name: string;
   email: string;
+  username: string;
 };
 type Admin = {
   _id: string;
@@ -80,6 +82,12 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     router.push("/login");
   };
 
+  const logout = () => {
+    localStorage.removeItem("accessToken");
+    setUser(null);
+    router.push("/");
+  };
+
   useEffect(() => {
     const accessToken = localStorage.getItem("accessToken");
 
@@ -95,10 +103,12 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
         localStorage.removeItem("accessToken");
       }
     };
+
+    fetchMe();
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, admin, login, register }}>
+    <AuthContext.Provider value={{ user, admin, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );
