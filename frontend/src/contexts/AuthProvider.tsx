@@ -23,12 +23,15 @@ type AuthContextType = {
     email: string
   ) => Promise<void>;
   logout: () => void;
+  updateAddress: (address: string) => Promise<boolean>;
 };
 type User = {
   _id: string;
   name: string;
   email: string;
   username: string;
+  address?: string;
+  role: "user" | "admin";
 };
 type Admin = {
   _id: string;
@@ -60,7 +63,11 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
 
       setUser(user);
 
-      router.push("/");
+      if (user.role === "admin") {
+        router.push("/admin");
+      } else {
+        router.push("/");
+      }
     } catch {
       toast.error("Invalid email or password");
     }
@@ -88,6 +95,32 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     router.push("/");
   };
 
+  const updateAddress = async (address: string): Promise<boolean> => {
+    const accessToken = localStorage.getItem("accessToken");
+    if (!accessToken) {
+      toast.error("Please login first");
+      return false;
+    }
+
+    try {
+      const { data } = await api.put(
+        "/auth/address",
+        { address },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+      setUser(data.user);
+      toast.success("Address updated successfully");
+      return true;
+    } catch {
+      toast.error("Failed to update address");
+      return false;
+    }
+  };
+
   useEffect(() => {
     const accessToken = localStorage.getItem("accessToken");
 
@@ -108,7 +141,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, admin, login, register, logout }}>
+    <AuthContext.Provider value={{ user, admin, login, register, logout, updateAddress }}>
       {children}
     </AuthContext.Provider>
   );

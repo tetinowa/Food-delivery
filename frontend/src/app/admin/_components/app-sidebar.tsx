@@ -1,14 +1,12 @@
 "use client";
 
-import { Search, LayoutDashboard, Truck } from "lucide-react";
+import { LayoutDashboard, Truck } from "lucide-react";
 import { usePathname } from "next/navigation";
 
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarGroup,
-  SidebarHeader,
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarMenu,

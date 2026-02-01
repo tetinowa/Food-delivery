@@ -23,12 +23,21 @@ const addressSchema = z.object({
 
 type AddressFormType = z.infer<typeof addressSchema>;
 
-interface CartAddressFormProps {
-  onBack: () => void;
-  onSubmit: () => void;
+export interface AddressData {
+  address: string;
+  apartment?: string;
+  city: string;
+  state: string;
+  zipCode: string;
 }
 
-export function CartAddressForm({ onBack, onSubmit }: CartAddressFormProps) {
+interface CartAddressFormProps {
+  onBack: () => void;
+  onSubmit: (address: AddressData) => void;
+  isSubmitting?: boolean;
+}
+
+export function CartAddressForm({ onBack, onSubmit, isSubmitting }: CartAddressFormProps) {
   const form = useForm<AddressFormType>({
     resolver: zodResolver(addressSchema),
     defaultValues: {
@@ -41,8 +50,7 @@ export function CartAddressForm({ onBack, onSubmit }: CartAddressFormProps) {
   });
 
   const handleSubmit = (values: AddressFormType) => {
-    console.log("Address:", values);
-    onSubmit();
+    onSubmit(values);
   };
 
   return (
@@ -129,8 +137,12 @@ export function CartAddressForm({ onBack, onSubmit }: CartAddressFormProps) {
               )}
             />
 
-            <Button type="submit" className="w-full h-12 bg-red-500 hover:bg-red-600 text-white">
-              Continue
+            <Button
+              type="submit"
+              className="w-full h-12 bg-red-500 hover:bg-red-600 text-white"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Placing Order..." : "Place Order"}
             </Button>
           </form>
         </Form>

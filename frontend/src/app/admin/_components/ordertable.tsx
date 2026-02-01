@@ -29,6 +29,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Table,
   TableBody,
   TableCell,
@@ -36,6 +42,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { api } from "@/lib/axios";
 
 export type Order = {
   id: string;
@@ -48,37 +55,34 @@ export type Order = {
   status: "Pending" | "Delivered" | "Cancelled";
 };
 
-const generatePlaceholderOrders = (): Order[] => {
-  const statuses: Order["status"][] = ["Pending", "Delivered", "Cancelled"];
-  const orders: Order[] = [];
-
-  for (let i = 1; i <= 32; i++) {
-    const statusIndex = i <= 3 ? 0 : i <= 7 ? 1 : 2;
-
-    orders.push({
-      id: String(i),
-      orderNumber: 1,
-      customer: "Test@gamil.com",
-      foods: [
-        {
-          name: "Sunshine Stackers",
-          image: "/foods/pancakes.jpg",
-          quantity: 1,
-        },
-        { name: "Burger Deluxe", image: "/foods/burger.jpg", quantity: 1 },
-      ],
-      date: "2024/12/20",
-      total: 26.97,
-      deliveryAddress:
-        "2024/12/СБД, 12-р хороо, СБД нэгдсэн эмнэлэг Sbd negdse...",
-      status: statuses[statusIndex],
-    });
-  }
-
-  return orders;
+type BackendOrder = {
+  _id: string;
+  userId: { _id: string; email: string } | null;
+  items: {
+    foodId: { _id: string; name: string; image: string } | null;
+    quantity: number;
+    price: number;
+  }[];
+  totalPrice: number;
+  deliveryAddress: string;
+  status: "Pending" | "Delivered" | "Cancelled";
+  createdAt: string;
 };
 
-const placeholderOrders = generatePlaceholderOrders();
+const transformOrder = (order: BackendOrder, index: number): Order => ({
+  id: order._id,
+  orderNumber: index + 1,
+  customer: order.userId?.email || "Unknown",
+  foods: order.items.map((item) => ({
+    name: item.foodId?.name || "Unknown",
+    image: item.foodId?.image || "",
+    quantity: item.quantity,
+  })),
+  date: new Date(order.createdAt).toLocaleDateString("en-CA"),
+  total: order.totalPrice,
+  deliveryAddress: order.deliveryAddress,
+  status: order.status,
+});
 
 const StatusBadge = ({
   status,
@@ -165,14 +169,82 @@ const FoodCell = ({ foods }: { foods: Order["foods"] }) => {
 export function OrderTable() {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [rowSelection, setRowSelection] = React.useState({});
-  const [orders, setOrders] = React.useState<Order[]>(placeholderOrders);
+  const [orders, setOrders] = React.useState<Order[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [dateRange, setDateRange] = React.useState<{ start: string; end: string }>({
+    start: "",
+    end: "",
+  });
 
-  const handleStatusChange = (orderId: string, newStatus: Order["status"]) => {
-    setOrders((prev) =>
-      prev.map((order) =>
-        order.id === orderId ? { ...order, status: newStatus } : order
-      )
-    );
+  const filteredOrders = React.useMemo(() => {
+    if (!dateRange.start && !dateRange.end) return orders;
+    return orders.filter((order) => {
+      const orderDate = order.date;
+      if (dateRange.start && orderDate < dateRange.start) return false;
+      if (dateRange.end && orderDate > dateRange.end) return false;
+      return true;
+    });
+  }, [orders, dateRange]);
+
+  const formatDateDisplay = (dateStr: string) => {
+    if (!dateStr) return "";
+    const date = new Date(dateStr);
+    return date.toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" });
+  };
+
+  const dateRangeLabel = dateRange.start || dateRange.end
+    ? `${formatDateDisplay(dateRange.start) || "Start"} - ${formatDateDisplay(dateRange.end) || "End"}`
+    : "Select date range";
+
+  React.useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const response = await api.get<BackendOrder[]>("/orders");
+        const transformedOrders = response.data.map(transformOrder);
+        setOrders(transformedOrders);
+      } catch (error) {
+        console.error("Failed to fetch orders:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchOrders();
+  }, []);
+
+  const handleStatusChange = async (orderId: string, newStatus: Order["status"]) => {
+    try {
+      await api.patch(`/orders/${orderId}/status`, { status: newStatus });
+      setOrders((prev) =>
+        prev.map((order) =>
+          order.id === orderId ? { ...order, status: newStatus } : order
+        )
+      );
+    } catch (error) {
+      console.error("Failed to update order status:", error);
+    }
+  };
+
+  const handleBulkStatusChange = async (newStatus: Order["status"]) => {
+    const selectedRows = table.getSelectedRowModel().rows;
+    if (selectedRows.length === 0) return;
+
+    try {
+      await Promise.all(
+        selectedRows.map((row) =>
+          api.patch(`/orders/${row.original.id}/status`, { status: newStatus })
+        )
+      );
+      setOrders((prev) =>
+        prev.map((order) =>
+          selectedRows.some((row) => row.original.id === order.id)
+            ? { ...order, status: newStatus }
+            : order
+        )
+      );
+      setRowSelection({});
+    } catch (error) {
+      console.error("Failed to update order statuses:", error);
+    }
   };
 
   const columns: ColumnDef<Order>[] = [
@@ -287,7 +359,7 @@ export function OrderTable() {
   ];
 
   const table = useReactTable({
-    data: orders,
+    data: filteredOrders,
     columns,
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
@@ -306,7 +378,7 @@ export function OrderTable() {
     },
   });
 
-  const totalItems = orders.length;
+  const totalItems = filteredOrders.length;
   const pageCount = table.getPageCount();
   const currentPage = table.getState().pagination.pageIndex + 1;
 
@@ -336,16 +408,70 @@ export function OrderTable() {
           <p className="text-sm text-gray-500">{totalItems} items</p>
         </div>
         <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            className="flex items-center gap-2 h-10 px-4 border-gray-200 rounded-full"
-          >
-            <Calendar className="h-4 w-4" />
-            <span className="text-sm">13 June 2023 - 14 July 2023</span>
-          </Button>
-          <Button className="h-10 px-4 bg-gray-900 text-white hover:bg-gray-800 rounded-full">
-            Change delivery state
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                className="flex items-center gap-2 h-10 px-4 border-gray-200 rounded-full"
+              >
+                <Calendar className="h-4 w-4" />
+                <span className="text-sm">{dateRangeLabel}</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="p-4 w-64">
+              <div className="space-y-3">
+                <div>
+                  <label className="text-sm text-gray-500 mb-1 block">Start date</label>
+                  <input
+                    type="date"
+                    value={dateRange.start}
+                    onChange={(e) => setDateRange((prev) => ({ ...prev, start: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm text-gray-500 mb-1 block">End date</label>
+                  <input
+                    type="date"
+                    value={dateRange.end}
+                    onChange={(e) => setDateRange((prev) => ({ ...prev, end: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
+                  />
+                </div>
+                {(dateRange.start || dateRange.end) && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => setDateRange({ start: "", end: "" })}
+                  >
+                    Clear filter
+                  </Button>
+                )}
+              </div>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                className="h-10 px-4 bg-gray-900 text-white hover:bg-gray-800 rounded-full"
+                disabled={Object.keys(rowSelection).length === 0}
+              >
+                Change delivery state
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onClick={() => handleBulkStatusChange("Pending")}>
+                Pending
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleBulkStatusChange("Delivered")}>
+                Delivered
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleBulkStatusChange("Cancelled")}>
+                Cancelled
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
@@ -373,7 +499,13 @@ export function OrderTable() {
           ))}
         </TableHeader>
         <TableBody>
-          {table.getRowModel().rows?.length ? (
+          {loading ? (
+            <TableRow>
+              <TableCell colSpan={columns.length} className="h-24 text-center">
+                Loading orders...
+              </TableCell>
+            </TableRow>
+          ) : table.getRowModel().rows?.length ? (
             table.getRowModel().rows.map((row) => (
               <TableRow
                 key={row.id}

@@ -7,93 +7,57 @@ import {
   X,
   ShoppingCart,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useCart } from "@/contexts/cart-context";
+import { api } from "@/lib/axios";
 
 interface OrderItem {
-  id: string;
-  name: string;
+  foodId: string;
   quantity: number;
   price: number;
 }
 
 interface Order {
-  id: string;
+  _id: string;
+  userId: string;
   items: OrderItem[];
-  total: number;
-  status: "pending" | "confirmed" | "delivering" | "delivered";
-  createdAt: Date;
-  address: string;
+  totalPrice: number;
+  deliveryAddress: string;
+  status: "Pending" | "Delivered" | "Cancelled";
+  createdAt: string;
 }
 
 interface CartOrderProps {
   onBack: () => void;
   onSubmit: () => void;
+  userId?: string;
 }
 
-// TODO: Replace with actual order data from your backend/context
-const mockOrders: Order[] = [
-  {
-    id: "ORD-001",
-    items: [
-      { id: "1", name: "Margherita Pizza", quantity: 2, price: 12.99 },
-      { id: "2", name: "Caesar Salad", quantity: 1, price: 8.99 },
-    ],
-    total: 34.97,
-    status: "delivering",
-    createdAt: new Date(Date.now() - 1000 * 60 * 30), // 30 mins ago
-    address: "123 Main St, Apt 4B",
-  },
-  {
-    id: "ORD-002",
-    items: [{ id: "3", name: "Chicken Burger", quantity: 1, price: 10.99 }],
-    total: 11.98,
-    status: "pending",
-    createdAt: new Date(Date.now() - 1000 * 60 * 5), // 5 mins ago
-    address: "123 Main St, Apt 4B",
-  },
-  {
-    id: "ORD-003",
-    items: [
-      { id: "4", name: "Spaghetti Carbonara", quantity: 1, price: 14.99 },
-      { id: "5", name: "Garlic Bread", quantity: 2, price: 4.99 },
-    ],
-    total: 24.97,
-    status: "delivered",
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
-    address: "123 Main St, Apt 4B",
-  },
-];
-
 const statusConfig = {
-  pending: {
+  Pending: {
     label: "Pending",
     icon: Clock,
     color: "text-yellow-600",
     bgColor: "bg-yellow-100",
   },
-  confirmed: {
-    label: "Confirmed",
-    icon: CheckCircle,
-    color: "text-blue-600",
-    bgColor: "bg-blue-100",
-  },
-  delivering: {
-    label: "On the way",
-    icon: Truck,
-    color: "text-orange-600",
-    bgColor: "bg-orange-100",
-  },
-  delivered: {
+  Delivered: {
     label: "Delivered",
     icon: Package,
     color: "text-green-600",
     bgColor: "bg-green-100",
   },
+  Cancelled: {
+    label: "Cancelled",
+    icon: X,
+    color: "text-red-600",
+    bgColor: "bg-red-100",
+  },
 };
 
-function formatTimeAgo(date: Date): string {
+function formatTimeAgo(date: string): string {
   const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
+  const orderDate = new Date(date);
+  const diffMs = now.getTime() - orderDate.getTime();
   const diffMins = Math.floor(diffMs / (1000 * 60));
   const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
@@ -110,9 +74,9 @@ function OrderCard({ order }: { order: Order }) {
   return (
     <div className="flex flex-col px-3 gap-3">
       <div className="flex items-center justify-between">
-        <div className="flex gap-8 items-center text-black font-bold text-[16px] ">
-          <span>{order.total}</span>
-          <span>{order.id}</span>
+        <div className="flex gap-8 items-center text-black font-bold text-[16px]">
+          <span>${order.totalPrice.toFixed(2)}</span>
+          <span>#{order._id.slice(-6)}</span>
         </div>
 
         <div
@@ -126,11 +90,9 @@ function OrderCard({ order }: { order: Order }) {
       </div>
 
       <div className="space-y-1">
-        {order.items.map((item) => (
-          <div key={item.id} className="flex justify-between text-sm">
-            <span className="text-gray-700">
-              {item.quantity}x {item.name}
-            </span>
+        {order.items.map((item, index) => (
+          <div key={index} className="flex justify-between text-sm">
+            <span className="text-gray-700">{item.quantity}x Food Item</span>
             <span className="text-gray-600">
               ${(item.price * item.quantity).toFixed(2)}
             </span>
@@ -143,22 +105,61 @@ function OrderCard({ order }: { order: Order }) {
           {formatTimeAgo(order.createdAt)}
         </span>
         <span className="font-semibold text-black">
-          ${order.total.toFixed(2)}
+          ${order.totalPrice.toFixed(2)}
         </span>
       </div>
     </div>
   );
 }
 
-export function CartOrder({ onBack }: CartOrderProps) {
-  const activeOrders = mockOrders.filter(
-    (o) =>
-      o.status === "pending" ||
-      o.status === "confirmed" ||
-      o.status === "delivering"
-  );
-  const completedOrders = mockOrders.filter((o) => o.status === "delivered");
-  const [step, setStep] = useState<"cart" | "order" | "success">("cart");
+export function CartOrder({ onBack, userId }: CartOrderProps) {
+  const { items, totalPrice, clearCart } = useCart();
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      if (!userId) {
+        setLoading(false);
+        return;
+      }
+      try {
+        const response = await api.get(`/orders?userId=${userId}`);
+        setOrders(response.data);
+      } catch (error) {
+        console.error("Failed to fetch orders:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrders();
+  }, [userId]);
+
+  const activeOrders = orders.filter((o) => o.status === "Pending");
+  const completedOrders = orders.filter((o) => o.status === "Delivered");
+
+  const submitOrder = async (userId: string, address: string) => {
+    const orderData = {
+      userId,
+      items: items.map((item) => ({
+        foodId: item.id,
+        quantity: item.quantity,
+        price: item.price,
+      })),
+      totalPrice,
+      deliveryAddress: address,
+    };
+
+    const response = await api.post("/orders/create", orderData);
+    clearCart();
+    setOrders([response.data, ...orders]);
+    return response.data;
+  };
+
+  if (loading) {
+    return <div className="text-white p-8">Loading orders...</div>;
+  }
 
   return (
     <div className="flex flex-col p-8 gap-6 w-133.75 h-256">
@@ -178,24 +179,21 @@ export function CartOrder({ onBack }: CartOrderProps) {
           <X className="h-5 w-5" />
         </Button>
       </div>
-      <div className="flex rounded-full bg-white p gap-2">
-        <div className="flex flex-2 gap-2 p-1 border-b border-gray-600">
-          <Button
-            className="flex-1 h-10 bg-red-500 hover:bg-red-600 text-white rounded-full"
-            onClick={() => setStep("cart")}
-          >
-            Cart
-          </Button>
-          <Button
-            variant="ghost"
-            className="flex-1 h-10 rounded-full border-gray-600 text-back hover:bg-red-500 hover:text-white"
-            onClick={() => setStep("order")}
-          >
-            Order
-          </Button>
-        </div>
-      </div>
+
       <div className="flex flex-col gap-4 min-h-[calc(100vh-200px)] overflow-y-auto">
+        {activeOrders.length > 0 && (
+          <div className="flex flex-col gap-5 bg-white rounded-3xl flex-1 p-6">
+            <h2 className="text-lg font-semibold text-[20px] leading-7 text-black">
+              Active Orders
+            </h2>
+            <div className="space-y-3">
+              {activeOrders.map((order) => (
+                <OrderCard key={order._id} order={order} />
+              ))}
+            </div>
+          </div>
+        )}
+
         {completedOrders.length > 0 && (
           <div className="flex flex-col gap-5 bg-white rounded-3xl flex-1 p-6">
             <h2 className="text-lg font-semibold text-[20px] leading-7 text-black">
@@ -203,9 +201,16 @@ export function CartOrder({ onBack }: CartOrderProps) {
             </h2>
             <div className="space-y-3">
               {completedOrders.map((order) => (
-                <OrderCard key={order.id} order={order} />
+                <OrderCard key={order._id} order={order} />
               ))}
             </div>
+          </div>
+        )}
+
+        {orders.length === 0 && (
+          <div className="flex flex-col items-center justify-center gap-3 text-white">
+            <Package className="w-16 h-16 opacity-50" />
+            <p className="text-lg">No orders yet</p>
           </div>
         )}
       </div>

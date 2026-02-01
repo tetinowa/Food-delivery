@@ -24,9 +24,10 @@ export function AvatarDropdown() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" sideOffset={15} className="w-32">
-        {user?.username}
+        <div className="flex justify-center items-center p-2">
+          {user?.username}
+        </div>
         <DropdownMenuGroup>
-          <DropdownMenuItem></DropdownMenuItem>
           <DropdownMenuItem>Billing</DropdownMenuItem>
           <DropdownMenuItem>Settings</DropdownMenuItem>
         </DropdownMenuGroup>

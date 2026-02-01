@@ -6,12 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ShoppingCartIcon, X } from "lucide-react";
 import { useCart } from "@/contexts/cart-context";
+import { useAuth } from "@/contexts/AuthProvider";
+import { api } from "@/lib/axios";
 import { CartEmptyState } from "./cart/CartEmptyState";
-import { CartSuccessState } from "./cart/CartSuccessState";
-import { CartAddressForm } from "./cart/CartAddressForm";
-import { CartOrder } from "./cart/CartOrder";
+import { CartSuccessState, OrderItem } from "./cart/CartSuccessState";
+import { CartAddressForm, AddressData } from "./cart/CartAddressForm";
 import { CartItem } from "./cart/CartItem";
 import { RemoveItemDialog } from "./cart/RemoveItemDialog";
+import { OrdersList } from "./cart/OrdersList";
 
 interface CartDialogProps {
   open: boolean;
@@ -21,15 +23,63 @@ interface CartDialogProps {
 export function CartDialog({ open, onOpenChange }: CartDialogProps) {
   const { items, removeItem, updateQuantity, totalPrice, clearCart } =
     useCart();
-  const [step, setStep] = useState<"cart" | "order" | "success">("cart");
+  const { user } = useAuth();
+  const [step, setStep] = useState<"main" | "address" | "success">("main");
+  const [activeTab, setActiveTab] = useState<"cart" | "order">("cart");
   const [showRemoveDialog, setShowRemoveDialog] = useState(false);
   const [itemToRemove, setItemToRemove] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [lastOrder, setLastOrder] = useState<{
+    items: OrderItem[];
+    totalPrice: number;
+    deliveryAddress: string;
+  } | null>(null);
 
   const deliveryFee = 0.99;
   const total = totalPrice + deliveryFee;
 
+  const handleAddressSubmit = async (address: AddressData) => {
+    if (!user?._id) return;
+
+    setIsSubmitting(true);
+    try {
+      const fullAddress = `${address.address}${address.apartment ? `, ${address.apartment}` : ""}, ${address.city}, ${address.state} ${address.zipCode}`;
+
+      setLastOrder({
+        items: items.map((item) => ({
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          image: item.imageSrc,
+        })),
+        totalPrice: total,
+        deliveryAddress: fullAddress,
+      });
+
+      await api.post("/orders/create", {
+        userId: user._id,
+        items: items.map((item) => ({
+          foodId: item.id,
+          quantity: item.quantity,
+          price: item.price,
+        })),
+        totalPrice: total,
+        deliveryAddress: fullAddress,
+      });
+
+      clearCart();
+      setStep("success");
+    } catch (error) {
+      console.error("Failed to create order:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleClose = () => {
-    setStep("cart");
+    setStep("main");
+    setActiveTab("cart");
     onOpenChange(false);
   };
 
@@ -47,22 +97,32 @@ export function CartDialog({ open, onOpenChange }: CartDialogProps) {
   };
 
   const renderContent = () => {
-    if (items.length === 0 && step === "cart") {
+    if (items.length === 0 && step === "main" && activeTab === "cart") {
       return <CartEmptyState onClose={handleClose} />;
     }
 
-    if (step === "success") {
-      return <CartSuccessState onClose={handleClose} onClearCart={clearCart} />;
+    if (step === "success" && lastOrder) {
+      return (
+        <CartSuccessState
+          onClose={handleClose}
+          onViewOrders={() => {
+            setStep("main");
+            setActiveTab("order");
+          }}
+          orderItems={lastOrder.items}
+          totalPrice={lastOrder.totalPrice}
+          deliveryAddress={lastOrder.deliveryAddress}
+        />
+      );
     }
 
-    if (step === "order") {
+    if (step === "address") {
       return (
-        <div className="flex flex-col gap-4">
-          <CartOrder
-            onBack={() => setStep("cart")}
-            onSubmit={() => setStep("success")}
-          />
-        </div>
+        <CartAddressForm
+          onBack={() => setStep("main")}
+          onSubmit={handleAddressSubmit}
+          isSubmitting={isSubmitting}
+        />
       );
     }
 
@@ -96,15 +156,22 @@ export function CartDialog({ open, onOpenChange }: CartDialogProps) {
             <div className="flex rounded-full bg-white p gap-2">
               <div className="flex flex-2 gap-2 p-1 border-b border-gray-600">
                 <Button
-                  className="flex-1 h-10 bg-red-500 hover:bg-red-600 text-white rounded-full"
-                  onClick={() => setStep("cart")}
+                  className={`flex-1 h-10 rounded-full ${
+                    activeTab === "cart"
+                      ? "bg-red-500 hover:bg-red-600 text-white"
+                      : "bg-transparent text-black hover:bg-red-500 hover:text-white"
+                  }`}
+                  onClick={() => setActiveTab("cart")}
                 >
                   Cart
                 </Button>
                 <Button
-                  variant="ghost"
-                  className="flex-1 h-10 rounded-full border-gray-600 text-back hover:bg-red-500 hover:text-white"
-                  onClick={() => setStep("order")}
+                  className={`flex-1 h-10 rounded-full ${
+                    activeTab === "order"
+                      ? "bg-red-500 hover:bg-red-600 text-white"
+                      : "bg-transparent text-black hover:bg-red-500 hover:text-white"
+                  }`}
+                  onClick={() => setActiveTab("order")}
                 >
                   Order
                 </Button>
@@ -112,55 +179,65 @@ export function CartDialog({ open, onOpenChange }: CartDialogProps) {
             </div>
 
             <div className="bg-white rounded-3xl p-6">
-              <h2 className="text-lg font-semibold mb-4 text-black">My cart</h2>
-              <div className="space-y-4">
-                {items.map((item) => (
-                  <CartItem
-                    key={item.id}
-                    {...item}
-                    onRemove={confirmRemoveItem}
-                    onUpdateQuantity={updateQuantity}
-                  />
-                ))}
-              </div>
-              <div className="mt-4">
-                <h3 className="font-semibold mb-2 text-black">
-                  Delivery location
-                </h3>
-                <Input
-                  placeholder="Please share your complete address"
-                  className="h-12 bg-gray-100 border-gray-200"
-                />
-              </div>
+              <h2 className="text-lg font-semibold mb-4 text-black">
+                {activeTab === "cart" ? "My cart" : "My orders"}
+              </h2>
+              {activeTab === "cart" ? (
+                <>
+                  <div className="space-y-4">
+                    {items.map((item) => (
+                      <CartItem
+                        key={item.id}
+                        {...item}
+                        onRemove={confirmRemoveItem}
+                        onUpdateQuantity={updateQuantity}
+                      />
+                    ))}
+                  </div>
+                  <div className="mt-4">
+                    <h3 className="font-semibold mb-2 text-black">
+                      Delivery location
+                    </h3>
+                    <Input
+                      placeholder="Please share your complete address"
+                      className="h-12 bg-gray-100 border-gray-200"
+                    />
+                  </div>
+                </>
+              ) : (
+                <OrdersList userId={user?._id} />
+              )}
             </div>
 
-            <div className="bg-white rounded-3xl p-6">
-              <h3 className="font-semibold mb-3 text-black">Payment info</h3>
-              <div className="space-y-2 mb-4">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Items</span>
-                  <span className="font-semibold text-black">
-                    ${totalPrice.toFixed(2)}
-                  </span>
+            {activeTab === "cart" && (
+              <div className="bg-white rounded-3xl p-6">
+                <h3 className="font-semibold mb-3 text-black">Payment info</h3>
+                <div className="space-y-2 mb-4">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Items</span>
+                    <span className="font-semibold text-black">
+                      ${totalPrice.toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Shipping</span>
+                    <span className="font-semibold text-black">
+                      ${deliveryFee.toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="border-t border-gray-200 pt-2 flex justify-between font-bold text-black">
+                    <span>Total</span>
+                    <span>${total.toFixed(2)}</span>
+                  </div>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Shipping</span>
-                  <span className="font-semibold text-black">
-                    ${deliveryFee.toFixed(2)}
-                  </span>
-                </div>
-                <div className="border-t border-gray-200 pt-2 flex justify-between font-bold text-black">
-                  <span>Total</span>
-                  <span>${total.toFixed(2)}</span>
-                </div>
+                <Button
+                  className="w-full h-12 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-full"
+                  onClick={() => setStep("address")}
+                >
+                  Checkout
+                </Button>
               </div>
-              <Button
-                className="w-full h-12 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-full"
-                onClick={() => setStep("order")}
-              >
-                Checkout
-              </Button>
-            </div>
+            )}
           </div>
         </div>
       </>
