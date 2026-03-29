@@ -162,12 +162,14 @@ export const CreateFoodDialog = ({
     try {
       setIsSubmitting(true);
 
+      const selectedCategory = categories.find((c) => c._id === data.categoryId);
       const payload = {
         name: data.name,
         price: parseFloat(data.price),
         image: data.image,
         ingredients: data.ingredients,
-        categoryId: data.categoryId || "64f1a1a1a1a1a1a1a1a1a1a1",
+        category: selectedCategory?.name || "",
+        categoryId: data.categoryId,
       };
 
       if (isEditMode) {

@@ -15,7 +15,6 @@ import {
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
-import { useState } from "react";
 
 const formSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -37,12 +36,7 @@ export default function Login() {
     },
   });
 
-  const onSubmit = (values: FormSchemaType) => {
-    console.log(values);
-  };
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const onSubmit = (_values: FormSchemaType) => {};
 
   return (
     <div className="w-screen h-screen flex items-center justify-center">

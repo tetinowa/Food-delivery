@@ -46,14 +46,11 @@ export default function ForgotPassword() {
     },
   });
 
-  const onEmailSubmit = (values: ResetEmailFormType) => {
-    console.log("Reset email:", values);
+  const onEmailSubmit = (_values: ResetEmailFormType) => {
     setStep(2);
   };
 
-  const onCodeSubmit = (values: VerificationCodeFormType) => {
-    console.log("Verification code:", values);
-  };
+  const onCodeSubmit = (_values: VerificationCodeFormType) => {};
 
   return (
     <AuthPageLayout>
@@ -123,7 +120,7 @@ export default function ForgotPassword() {
               buttonText="Continue"
               footerText="Didn't receive code?"
               footerLinkText="Resend"
-              onFooterLinkClick={() => console.log("Resend code")}
+              onFooterLinkClick={() => {}}
             />
           </form>
         </Form>

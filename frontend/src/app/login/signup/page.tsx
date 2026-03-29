@@ -18,8 +18,10 @@ import {
   PasswordInputField,
   AuthFormActions,
 } from "@/app/(client)/_components/auth";
+import { useAuth } from "@/contexts/AuthProvider";
 
 const emailSchema = z.object({
+  username: z.string().min(3, "Username must be at least 3 characters"),
   email: z.string().email("Invalid email address"),
 });
 
@@ -39,10 +41,13 @@ type PasswordFormType = z.infer<typeof passwordSchema>;
 export default function SignUp() {
   const [step, setStep] = useState(1);
   const [emailData, setEmailData] = useState("");
+  const [usernameData, setUsernameData] = useState("");
+  const { register } = useAuth();
 
   const emailForm = useForm<EmailFormType>({
     resolver: zodResolver(emailSchema),
     defaultValues: {
+      username: "",
       email: "",
     },
   });
@@ -56,13 +61,13 @@ export default function SignUp() {
   });
 
   const onEmailSubmit = (values: EmailFormType) => {
-    console.log("Email:", values);
+    setUsernameData(values.username);
     setEmailData(values.email);
     setStep(2);
   };
 
-  const onPasswordSubmit = (values: PasswordFormType) => {
-    console.log("Complete signup:", { email: emailData, ...values });
+  const onPasswordSubmit = async (values: PasswordFormType) => {
+    await register(usernameData, values.password, emailData);
   };
 
   return (
@@ -75,23 +80,43 @@ export default function SignUp() {
               description="Sign up to explore your favorite dishes."
             />
 
-            <FormField
-              control={emailForm.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <Input
-                      type="email"
-                      placeholder="Enter your email address"
-                      className="h-12"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="flex flex-col gap-4">
+              <FormField
+                control={emailForm.control}
+                name="username"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input
+                        type="text"
+                        placeholder="Choose a username"
+                        className="h-12"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={emailForm.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input
+                        type="email"
+                        placeholder="Enter your email address"
+                        className="h-12"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             <AuthFormActions
               buttonText="Continue"

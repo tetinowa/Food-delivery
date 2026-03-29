@@ -3,14 +3,12 @@
 import { api } from "@/lib/axios";
 import { useRouter } from "next/navigation";
 import {
-  Children,
   createContext,
   PropsWithChildren,
   useContext,
   useEffect,
   useState,
 } from "react";
-import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 
 type AuthContextType = {
@@ -78,15 +76,20 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     password: string,
     email: string
   ) => {
-    const { data } = await api.post("/auth/register", {
-      username,
-      password,
-      email,
-    });
+    try {
+      const { data } = await api.post("/auth/register", {
+        username,
+        password,
+        email,
+      });
 
-    setUser(data.user);
+      setUser(data.user);
 
-    router.push("/login");
+      router.push("/login");
+    } catch (error: any) {
+      const message = error?.response?.data?.message ?? "Registration failed";
+      toast.error(message);
+    }
   };
 
   const logout = () => {

@@ -6,6 +6,7 @@ import { CategorySection } from "./_components/category-section";
 import { Footer } from "./_components/footer";
 import { FoodInfoDialog } from "./_components/food-info-dialog";
 import { FoodCardProps, FoodFromAPI } from "./_components/types";
+import { api } from "@/lib/axios";
 
 export default function Home() {
   const [selectedFood, setSelectedFood] = useState<FoodCardProps | null>(null);
@@ -18,8 +19,8 @@ export default function Home() {
   useEffect(() => {
     const fetchFoods = async () => {
       try {
-        const response = await fetch("http://localhost:3001/foods");
-        const foods: FoodFromAPI[] = await response.json();
+        const response = await api.get<FoodFromAPI[]>("/foods");
+        const foods: FoodFromAPI[] = response.data;
 
         const grouped = foods.reduce(
           (acc, food) => {
